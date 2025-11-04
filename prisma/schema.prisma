@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+   id String  @id @default(uuid()) @map("UserId")
+  firstName String @map("FirstName")
+  lastName String @map("LastName")
+  userName String @unique @map("UserName")
+  emailAdress String @unique @map("EmailAdress")
+  password String @map("password")
+  isDeleted Boolean @default(false) @map("IsDeleted")
+  dateJoined DateTime @default(now()) @map("DateJoined")
+  lastUpdated DateTime @updatedAt @map("LastUpdated")
+  posts Blog[]
+
+  @@map("Users")
+}
+
+model Blog {
+  id String @id @default(uuid()) @map("PostId")
+  title String @map("Title")
+  synopsis String @map("Synopsis")
+  featuredImageUrl String @map("FeaturedImageUrl")
+  content String @map("Content")
+  isDeleted Boolean @default(false) @map("IsDeleted")
+  createdAt DateTime @default(now()) @map("CreatedAt")
+  lastUpdated DateTime @updatedAt @map("LastUpdated")
+  userId String @map("UserId")
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("Blogs")
+}

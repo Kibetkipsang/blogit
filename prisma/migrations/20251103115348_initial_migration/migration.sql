@@ -1,0 +1,46 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- CreateTable
+CREATE TABLE [dbo].[Users] (
+    [UserId] NVARCHAR(1000) NOT NULL,
+    [FirstName] NVARCHAR(1000) NOT NULL,
+    [LastName] NVARCHAR(1000) NOT NULL,
+    [UserName] NVARCHAR(1000) NOT NULL,
+    [EmailAdress] NVARCHAR(1000) NOT NULL,
+    [password] NVARCHAR(1000) NOT NULL,
+    [IsDeleted] BIT NOT NULL CONSTRAINT [Users_IsDeleted_df] DEFAULT 0,
+    [DateJoined] DATETIME2 NOT NULL CONSTRAINT [Users_DateJoined_df] DEFAULT CURRENT_TIMESTAMP,
+    [LastUpdated] DATETIME2 NOT NULL,
+    CONSTRAINT [Users_pkey] PRIMARY KEY CLUSTERED ([UserId]),
+    CONSTRAINT [Users_UserName_key] UNIQUE NONCLUSTERED ([UserName]),
+    CONSTRAINT [Users_EmailAdress_key] UNIQUE NONCLUSTERED ([EmailAdress])
+);
+
+-- CreateTable
+CREATE TABLE [dbo].[Posts] (
+    [PostId] NVARCHAR(1000) NOT NULL,
+    [Title] NVARCHAR(1000) NOT NULL,
+    [Description] NVARCHAR(1000) NOT NULL,
+    [CreatedAt] DATETIME2 NOT NULL CONSTRAINT [Posts_CreatedAt_df] DEFAULT CURRENT_TIMESTAMP,
+    [UpdatedAt] DATETIME2 NOT NULL,
+    [UserId] NVARCHAR(1000) NOT NULL,
+    CONSTRAINT [Posts_pkey] PRIMARY KEY CLUSTERED ([PostId])
+);
+
+-- AddForeignKey
+ALTER TABLE [dbo].[Posts] ADD CONSTRAINT [Posts_UserId_fkey] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users]([UserId]) ON DELETE NO ACTION ON UPDATE CASCADE;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH
