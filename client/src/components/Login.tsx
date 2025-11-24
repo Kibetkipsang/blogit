@@ -1,5 +1,8 @@
-import {useState} from 'react';
+import React, {useState} from 'react';
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from 'react-router-dom';
+import {api} from '../axios';
+import { toast } from 'sonner';
 import {
   Card,
   CardAction,
@@ -14,18 +17,46 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 
-function Login() {
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [userName, setUserName] = useState("");
-    const [emailAdress, setEmailAdress] = useState("");
-    const [password, setPassword] = useState("");
+type userDataType = {
+    identifier: string;
+    password: string;
+}
 
-    const {} = useMutation({
-        mutationKey: ['registerUser'],
-        mutationFn: async () => {},
-        onSuccess: () => {}
+const loginUser = async (data: userDataType) => {
+  const response = await api.post("/auth/login", data);
+  return response.data;
+}
+
+function Login() {
+    const navigate = useNavigate();
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+    const {isPending, mutate, isError, error} = useMutation({
+        mutationKey: ['LoginUser'],
+        mutationFn: loginUser,
+        onSuccess: () => {
+          toast.success("Login Successful!");
+          navigate("/");
+        },
+        onError: (error: any) => {
+          toast.error(error?.response?.data?.message || "Login Failed!");
+        }
+        
     })
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        mutate({ identifier, password });
+    }
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>){
+        const {id, value} = e.target;
+        if(id === "email" || id === "username"){
+            setIdentifier(value);
+        }else if(id === "password"){
+            setPassword(value);
+        }
+    }
 
 
   return (
@@ -34,21 +65,23 @@ function Login() {
       <CardHeader>
         <CardTitle>Login to your account</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          Enter your email or username below to login to your account
         </CardDescription>
         <CardAction>
-          <Button variant="link">Sign Up</Button>
+          <Button variant="link">Register</Button>
         </CardAction>
       </CardHeader>
       <CardContent>
         <form>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 placeholder="m@example.com"
+                value={identifier}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -62,13 +95,13 @@ function Login() {
                   Forgot your password?
                 </a>
               </div>
-              <Input id="password" type="password" required />
+              <Input id="password" type="password" value={password} onChange={handleChange} required />
             </div>
           </div>
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isPending} onClick={handleSubmit}>
           Login
         </Button>
         <Button variant="outline" className="w-full">
@@ -80,4 +113,4 @@ function Login() {
   )
 }
 
-export default Register
+export default Login

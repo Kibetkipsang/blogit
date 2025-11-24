@@ -1,10 +1,13 @@
+
 import {useState} from 'react';
 import { useMutation } from "@tanstack/react-query";
 import { Link } from 'react-router-dom';
+import { api } from '../axios'
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -15,19 +18,63 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+type userDataType = {
+    firstName: string;
+    lastName: string;
+    userName: string;
+    emailAdress: string;
+    password: string;
+}
+const userData = async (data: userDataType) => {
+  const res = await api.post('/auth/register', data);
+  return res.data;
+}
 
 function Register() {
+    const navigate = useNavigate();
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [userName, setUserName] = useState("");
     const [emailAdress, setEmailAdress] = useState("");
     const [password, setPassword] = useState("");
 
-    const {} = useMutation({
+    const { mutate, isPending, isError, error } = useMutation({
         mutationKey: ['registerUser'],
-        mutationFn: async () => {},
-        onSuccess: () => {}
-    })
+        mutationFn: userData,
+        onSuccess: () => {
+          toast.success("Registration Successful!");
+          setFirstName(firstName);
+          setLastName(lastName);
+          setUserName(userName);
+          setEmailAdress(emailAdress);
+          setPassword(password);
+          navigate('/login');
+        },
+        
+        onError: (error: any) => {
+          toast.error(error?.response?.data?.message || "Registration Failed!");
+        },
+    });
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        mutate({ firstName, lastName, userName, emailAdress, password });
+    }
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const { id, value } = e.target;
+      if (id === "firstName") {
+        setFirstName(value);
+      } else if (id === "lastName") {
+        setLastName(value);
+      } else if (id === "userName") {
+        setUserName(value);
+      } else if (id === "email") {
+        setEmailAdress(value);
+      } else if (id === "password") {
+        setPassword(value);
+      }
+    }
 
 
   return (
@@ -52,6 +99,8 @@ function Register() {
                   id="firstName"
                   type="text"
                   placeholder="Your First Name"
+                  value={firstName}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -61,6 +110,8 @@ function Register() {
                   id="lastName"
                   type="text"
                   placeholder="Your Last Name"
+                  value={lastName}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -70,6 +121,8 @@ function Register() {
                   id="userName"
                   type="text"
                   placeholder="Your Username"
+                  value={userName}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -79,6 +132,8 @@ function Register() {
                   id="email"
                   type="email"
                   placeholder="email@example.com"
+                  value={emailAdress}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -88,6 +143,8 @@ function Register() {
                   id="password"
                   type="password"
                   placeholder="Your Password"
+                  value={password}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -113,7 +170,7 @@ function Register() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" onClick={handleSubmit} disabled={isPending}>
             Register
           </Button>
           <Button variant="outline" className="w-full">
