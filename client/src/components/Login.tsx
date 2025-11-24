@@ -1,11 +1,10 @@
 import React, {useState} from 'react';
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {api} from '../axios';
 import { toast } from 'sonner';
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -62,14 +61,19 @@ function Login() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
+      <CardHeader className="text-center">
+        <CardTitle>Login</CardTitle>
         <CardDescription>
-          Enter your email or username below to login to your account
+          
+          <div>
+            <div>
+              <p>Dont have an account? <Link to="/register" className='text-blue-500 hover:underline'>Register</Link></p>
+            </div>
+            <div className='text-red-600'>
+            {isError ? error.response.data.message || "Registration Failed!" : null}
+            </div>
+          </div>
         </CardDescription>
-        <CardAction>
-          <Button variant="link">Register</Button>
-        </CardAction>
       </CardHeader>
       <CardContent>
         <form>
@@ -102,7 +106,7 @@ function Login() {
       </CardContent>
       <CardFooter className="flex-col gap-2">
         <Button type="submit" className="w-full" disabled={isPending} onClick={handleSubmit}>
-          Login
+          {isPending ? "Logging in..." : "Login"}
         </Button>
         <Button variant="outline" className="w-full">
           Login with Google
