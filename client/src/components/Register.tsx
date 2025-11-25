@@ -1,10 +1,9 @@
-
-import {useState} from 'react';
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Link } from 'react-router-dom';
-import { api } from '../axios'
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { api } from "../axios";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 import {
   Card,
@@ -15,82 +14,87 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type userDataType = {
-    firstName: string;
-    lastName: string;
-    userName: string;
-    emailAdress: string;
-    password: string;
-}
+  firstName: string;
+  lastName: string;
+  userName: string;
+  emailAdress: string;
+  password: string;
+};
 const userData = async (data: userDataType) => {
-  const res = await api.post('/auth/register', data);
+  const res = await api.post("/auth/register", data);
   return res.data;
-}
+};
 
 function Register() {
-    const navigate = useNavigate();
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [userName, setUserName] = useState("");
-    const [emailAdress, setEmailAdress] = useState("");
-    const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [userName, setUserName] = useState("");
+  const [emailAdress, setEmailAdress] = useState("");
+  const [password, setPassword] = useState("");
 
-    const { mutate, isPending, isError, error } = useMutation({
-        mutationKey: ['registerUser'],
-        mutationFn: userData,
-        onSuccess: () => {
-          toast.success("Registration Successful!");
-          setFirstName(firstName);
-          setLastName(lastName);
-          setUserName(userName);
-          setEmailAdress(emailAdress);
-          setPassword(password);
-          navigate('/login');
-        },
-        
-        onError: (error: any) => {
-          toast.error(error?.response?.data?.message || "Registration Failed!");
-        },
-    });
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationKey: ["registerUser"],
+    mutationFn: userData,
+    onSuccess: () => {
+      toast.success("Registration Successful!");
+      setFirstName(firstName);
+      setLastName(lastName);
+      setUserName(userName);
+      setEmailAdress(emailAdress);
+      setPassword(password);
+      navigate("/login");
+    },
 
-    function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        mutate({ firstName, lastName, userName, emailAdress, password });
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Registration Failed!");
+    },
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    mutate({ firstName, lastName, userName, emailAdress, password });
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { id, value } = e.target;
+    if (id === "firstName") {
+      setFirstName(value);
+    } else if (id === "lastName") {
+      setLastName(value);
+    } else if (id === "userName") {
+      setUserName(value);
+    } else if (id === "email") {
+      setEmailAdress(value);
+    } else if (id === "password") {
+      setPassword(value);
     }
-
-    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-      const { id, value } = e.target;
-      if (id === "firstName") {
-        setFirstName(value);
-      } else if (id === "lastName") {
-        setLastName(value);
-      } else if (id === "userName") {
-        setUserName(value);
-      } else if (id === "email") {
-        setEmailAdress(value);
-      } else if (id === "password") {
-        setPassword(value);
-      }
-    }
-
+  }
 
   return (
     <div className="flex justify-center items-center  bg-gray-50 mt-26">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className='text-green-800 font-bold'>REGISTER</CardTitle>
+          <CardTitle className="text-green-800 font-bold">REGISTER</CardTitle>
           <CardDescription>
             <div>
-                <p>Already have an account? <Link to="/login" className='text-green-800 hover:underline'>Login</Link></p>
+              <p>
+                Already have an account?{" "}
+                <Link to="/login" className="text-green-800 hover:underline">
+                  Login
+                </Link>
+              </p>
             </div>
-            <div className='text-red-600'>
-            {isError ? error.response.data.message || "Registration Failed!" : null}
+            <div className="text-red-600">
+              {isError
+                ? error.response.data.message || "Registration Failed!"
+                : null}
             </div>
-            </CardDescription>
-          
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -173,8 +177,13 @@ function Register() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
-          <Button type="submit" className="w-full bg-green-800 hover:bg-green-900" onClick={handleSubmit} disabled={isPending}>
-            {isPending ? "Registering..." : "Register" }
+          <Button
+            type="submit"
+            className="w-full bg-green-800 hover:bg-green-900"
+            onClick={handleSubmit}
+            disabled={isPending}
+          >
+            {isPending ? "Registering..." : "Register"}
           </Button>
           <Button variant="outline" className="w-full">
             Sign up with Google
@@ -182,7 +191,7 @@ function Register() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 
-export default Register
+export default Register;
