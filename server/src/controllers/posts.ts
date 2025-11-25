@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { createDecipheriv } from 'crypto';
 import { type Request, type Response } from 'express';
 
 const client = new PrismaClient();
@@ -55,7 +56,17 @@ export const getBlog = async(req: Request, res: Response) => {
     try{
         const blogs = await client.blog.findMany({
             where:{
-                isDeleted: false
+                isDeleted: false,
+            },
+            select: {
+                    id:true,
+                    title: true,
+                    synopsis: true,
+                    featuredImageUrl: true,
+                    content: true
+                },
+            orderBy: {
+                createdAt: 'desc'
             }
         })
         if (!blogs){
@@ -63,6 +74,7 @@ export const getBlog = async(req: Request, res: Response) => {
                 message: "No blogs found"
             });
         }
+       
         res.status(200).json(blogs)
     }catch(err){
         res.status(500).json({
@@ -234,6 +246,30 @@ export const restoreTrash = async(req: Request, res: Response) => {
         })
     }
 }
+
+// get trashed  blogs
+// export const getTrashedBlogs = async(req: Request, res: Response) => {
+//     try{
+//         const trashedBlogs = await client.blog.findMany({
+//             where: {
+//                 isDeleted: true
+//             },
+//             orderBy: {
+//                 createdAt: 'desc'
+//             }
+//         });
+//         if (trashedBlogs.length === 0){
+//             return res.status(404).json({
+//                 message: "No trashed blogs found."
+//             })
+//         }
+//         res.status(200).json(trashedBlogs)
+//     }catch(err){
+//         res.status(500).json({
+//             message: "Something went wrong. Please try again later."
+//         })
+//     }
+// }
 // permanent delete 
 export const deletePermanently = async(req: Request, res: Response) => {
     try{

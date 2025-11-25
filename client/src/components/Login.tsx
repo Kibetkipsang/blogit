@@ -62,12 +62,12 @@ function Login() {
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <CardTitle>Login</CardTitle>
+        <CardTitle className='text-green-800 font-bold'>Login</CardTitle>
         <CardDescription>
           
           <div>
             <div>
-              <p>Dont have an account? <Link to="/register" className='text-blue-500 hover:underline'>Register</Link></p>
+              <p>Dont have an account? <Link to="/register" className='text-green-800 hover:underline'>Register</Link></p>
             </div>
             <div className='text-red-600'>
             {isError ? error.response.data.message || "Registration Failed!" : null}
@@ -105,7 +105,7 @@ function Login() {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        <Button type="submit" className="w-full" disabled={isPending} onClick={handleSubmit}>
+        <Button type="submit" className="w-full bg-green-800 hover:bg-green-900" disabled={isPending} onClick={handleSubmit}>
           {isPending ? "Logging in..." : "Login"}
         </Button>
         <Button variant="outline" className="w-full">

@@ -60,7 +60,7 @@ export const login = async function (req: Request, res: Response){
         const passMatch = await bcrypt.compare(password, user.password)
         if(!passMatch){
             return res.status(400).json({
-                message: "wrong login credentials"
+                message: "Wrong login credentials"
             })
         }
 
@@ -76,7 +76,7 @@ export const login = async function (req: Request, res: Response){
         res.status(200).cookie("authToken", token).json(payload)
     }catch(err){
         res.status(500).json({
-            message: "something went wrong"
+            message: "Something went wrong"
         })
     }
 }

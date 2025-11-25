@@ -81,10 +81,10 @@ function Register() {
     <div className="flex justify-center items-center  bg-gray-50 mt-26">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>REGISTER</CardTitle>
+          <CardTitle className='text-green-800 font-bold'>REGISTER</CardTitle>
           <CardDescription>
             <div>
-                <p>Already have an account? <Link to="/login" className='text-blue-500 hover:underline'>Login</Link></p>
+                <p>Already have an account? <Link to="/login" className='text-green-800 hover:underline'>Login</Link></p>
             </div>
             <div className='text-red-600'>
             {isError ? error.response.data.message || "Registration Failed!" : null}
@@ -173,7 +173,7 @@ function Register() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
-          <Button type="submit" className="w-full" onClick={handleSubmit} disabled={isPending}>
+          <Button type="submit" className="w-full bg-green-800 hover:bg-green-900" onClick={handleSubmit} disabled={isPending}>
             {isPending ? "Registering..." : "Register" }
           </Button>
           <Button variant="outline" className="w-full">
