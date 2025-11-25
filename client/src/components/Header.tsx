@@ -19,6 +19,9 @@ function Header() {
           <Link to="/profile" className="hover:text-red-500 transition text-xl">
             Profile
           </Link>
+          <Link to="/blogs" className="hover:text-red-500 transition text-xl">
+            Blogs
+          </Link>
           {user && (
             <Link
               to="/create-blog"

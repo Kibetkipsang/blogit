@@ -101,19 +101,36 @@ function CreateBlog() {
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="image">Featured Image URL</Label>
-          <Input
-            type="file"
-            id="image"
-            accept="image/*"
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setFeaturedImageUrl(e.target.files[0]);
-              }
-            }}
-          />
-          {featuredImageUrl && (
-            <p className="text-sm text-gray-600">{featuredImageUrl.name}</p>
-          )}
+<div className="flex flex-col gap-2">
+  <input
+    type="file"
+    id="image"
+    accept="image/*"
+    onChange={(e) => {
+      if (e.target.files && e.target.files[0]) {
+        setFeaturedImageUrl(e.target.files[0]);
+      }
+    }}
+    className="
+      block w-full text-gray-700
+      border border-gray-300 rounded-sm
+      cursor-pointer
+      file:mr-4 file:py-2 file:px-4
+      file:rounded-md file:border-0
+      file:text-sm file:font-semibold
+      file:bg-green-800 file:text-white
+      file:hover:bg-green-900
+      focus:outline-none focus:ring-2 focus:ring-green-600
+      focus:ring-offset-2
+      transition-colors
+    "
+  />
+  {featuredImageUrl && (
+    <p className="text-sm text-gray-600 truncate">{featuredImageUrl.name}</p>
+  )}
+</div>
+
+        
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="content">Content</Label>

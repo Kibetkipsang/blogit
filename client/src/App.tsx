@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Profile from "./components/Profile";
 import CreateBlog from "./components/pages/CreateBlog";
+import Blogs from "./components/pages/Blogs";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-blog" element={<CreateBlog />} />
+          <Route path="/blogs" element={<Blogs />} />
         </Routes>
         <Footer />
       </div>
