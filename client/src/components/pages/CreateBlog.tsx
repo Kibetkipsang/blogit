@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import useAuthStore from "@/stores/useStore";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { uploadToCloudinary } from "../../lib/cloudinary";
 import { api } from "../../axios";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
@@ -9,8 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
-import { uploadToCloudinary } from "../../lib/cloudinary";
 
 type BlogContentType = {
   title: string;
@@ -24,13 +24,20 @@ const createBlog = async (formData: BlogContentType) => {
   return res.data;
 };
 
+const fetchCategories = async () => {
+  const res = await api.get("/categories");
+  return res.data;
+}
+
 function CreateBlog() {
   const user = useAuthStore((state) => state.user);
   const [title, setTitle] = useState("");
   const [synopsis, setSynopsis] = useState("");
   const [content, setContent] = useState("");
   const [featuredImageUrl, setFeaturedImageUrl] = useState<File | null>(null);
+  const [category, setCategory] = useState("");
   const [tab, setTab] = useState("write");
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
   const { mutate, isPending } = useMutation({
@@ -44,6 +51,18 @@ function CreateBlog() {
       toast.error(error?.response?.data?.message || "Blog Creation Failed!");
     },
   });
+
+  const {data, isLoading: isCategoriesLoading, error: categoriesError} = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+  });
+
+  useEffect(() => {
+  if (data) {
+    setCategories(Array.isArray(data) ? data : data.categories || []);
+  }
+}, [data]);
+
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -88,6 +107,30 @@ function CreateBlog() {
             required
           />
         </div>
+        <div className="flex flex-col gap-2">
+  <Label htmlFor="category">Category</Label>
+  {isCategoriesLoading ? (
+    <p>Loading categories...</p>
+  ) : categoriesError ? (
+    <p className="text-red-600">Failed to load categories</p>
+  ) : (
+    <select
+      id="category"
+      value={category}
+      onChange={(e) => setCategory(e.target.value)}
+      className="w-full p-2 border border-gray-300 rounded"
+      required
+    >
+      <option value="">Select category</option>
+      {categories.map((cat: any) => (
+        <option key={cat.id} value={cat.name}>
+          {cat.name}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="synopsis">Synopsis</Label>
           <Textarea

@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 
 
 type BlogCardType = {
-  blogId: string;
+  id: string;
   title: string;
   synopsis: string;
   featuredImageUrl: string;
@@ -12,7 +12,7 @@ type BlogCardType = {
 };
 
 export default function BlogCard({
-  blogId,
+  id,
   title,
   synopsis,
   featuredImageUrl,
@@ -23,11 +23,11 @@ export default function BlogCard({
 
 
   return (
-    <div className="bg-black rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col w-1/4">
+    <div className="bg-black rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 ">
       <img
         src={featuredImageUrl}
         alt={title}
-        className="h-48 w-full object-cover"
+        className="h-64 w-full object-cover"
         loading="lazy"
       />
       <div className="p-4 flex flex-col flex-1">
@@ -39,7 +39,7 @@ export default function BlogCard({
           <Button
             size="sm"
             className="bg-green-800 hover:bg-green-900"
-            onClick={() => navigate(`/blogs/${blogId}`)}
+            onClick={() => navigate(`/blogs/${id}`)}
           >
             Read More
           </Button>

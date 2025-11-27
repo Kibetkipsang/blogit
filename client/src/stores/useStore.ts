@@ -6,6 +6,7 @@ type UserType = {
   lastName: string;
   userName: string;
   emailAdress: string;
+  role: string;
 };
 
 type AuthStore = {

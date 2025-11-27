@@ -16,9 +16,11 @@ function Header() {
           <Link to="/" className="hover:text-red-500 transition text-xl">
             Home
           </Link>
-          <Link to="/profile" className="hover:text-red-500 transition text-xl">
+          {user && (
+            <Link to="/profile" className="hover:text-red-500 transition text-xl">
             Profile
           </Link>
+          )}
           <Link to="/blogs" className="hover:text-red-500 transition text-xl">
             Blogs
           </Link>
@@ -51,6 +53,17 @@ function Header() {
             </Button>
           )}
         </nav>
+        <div className="gap-6 flex justify-between">
+          {user?.role === "admin" && (
+          <Button
+            onClick={() => {
+              navigate("/admin");
+            }}
+            className="bg-green-700 hover:bg-green-800"
+          >
+            Admin Panel
+          </Button>
+        ) }
         {user && (
           <Button
             onClick={() => {
@@ -61,6 +74,8 @@ function Header() {
             Logout
           </Button>
         )}
+        </div>
+
       </div>
     </header>
   );

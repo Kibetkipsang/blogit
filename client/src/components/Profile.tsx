@@ -19,7 +19,7 @@ function Profile() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+    <div className="flex min-h-screen justify-center items-center  bg-gray-100 mt-24">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-green-800 font-bold text-center">
