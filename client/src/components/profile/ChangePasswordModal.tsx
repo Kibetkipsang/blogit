@@ -21,30 +21,40 @@ const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match!");
-      return;
-    }
+  if (newPassword !== confirmPassword) {
+    toast.error("Passwords do not match!");
+    return;
+  }
 
-    setIsLoading(true);
-    try {
-      await api.patch(`/auth/changePassword/${user?.id}`, {
-        currentPassword,
-        newPassword,
-      });
-      toast.success("Password updated successfully!");
-      onClose();
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Password update failed!");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (newPassword.length < 6) {
+    toast.error("Password must be at least 6 characters long!");
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    await api.patch(`/auth/password`, {
+      previousPassword: currentPassword,
+      newPassword: newPassword,
+    });
+    toast.success("Password updated successfully!");
+    onClose();
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  } catch (err: any) {
+    console.error("🔴 Password change error details:", {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.response?.data?.message
+    });
+    toast.error(err?.response?.data?.message || "Password update failed!");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -69,7 +79,8 @@ const ChangePasswordModal: React.FC<Props> = ({ isOpen, onClose }) => {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            placeholder="Enter new password"
+            minLength={6}
+            placeholder="Enter new password (min 6 characters)"
           />
         </div>
         <div className="flex flex-col gap-1">

@@ -11,9 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Loader2, ArrowLeft, Save, FileText, Image as ImageIcon, Edit3 } from "lucide-react";
+import { 
+  Loader2, ArrowLeft, Save, FileText, Image as ImageIcon, Edit3,
+  Bold, Italic, List, ListOrdered, Link, Quote, Code, Heading1, 
+  Heading2, Heading3, Eye, Type
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import remarkGfm from "remark-gfm";
 
 type BlogContentType = {
   title: string;
@@ -119,6 +124,97 @@ function CreateBlog() {
 
   const isPending = isCreating || isUpdating;
 
+  // Markdown formatting functions
+  const insertText = (before: string, after: string = "", defaultText: string = "") => {
+    const textarea = document.getElementById("content") as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end) || defaultText;
+    
+    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
+    setContent(newText);
+    
+    // Set cursor position after insertion
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + before.length + selectedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  const insertAtCursor = (text: string) => {
+    const textarea = document.getElementById("content") as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newText = content.substring(0, start) + text + content.substring(end);
+    
+    setContent(newText);
+    
+    // Set cursor position after insertion
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + text.length, start + text.length);
+    }, 0);
+  };
+
+  // Toolbar buttons configuration
+  const toolbarButtons = [
+    { 
+      icon: <Heading1 className="h-4 w-4" />, 
+      tooltip: "Heading 1", 
+      action: () => insertAtCursor("# ") 
+    },
+    { 
+      icon: <Heading2 className="h-4 w-4" />, 
+      tooltip: "Heading 2", 
+      action: () => insertAtCursor("## ") 
+    },
+    { 
+      icon: <Heading3 className="h-4 w-4" />, 
+      tooltip: "Heading 3", 
+      action: () => insertAtCursor("### ") 
+    },
+    { 
+      icon: <Bold className="h-4 w-4" />, 
+      tooltip: "Bold", 
+      action: () => insertText("**", "**", "bold text") 
+    },
+    { 
+      icon: <Italic className="h-4 w-4" />, 
+      tooltip: "Italic", 
+      action: () => insertText("*", "*", "italic text") 
+    },
+    { 
+      icon: <List className="h-4 w-4" />, 
+      tooltip: "Bullet List", 
+      action: () => insertAtCursor("- ") 
+    },
+    { 
+      icon: <ListOrdered className="h-4 w-4" />, 
+      tooltip: "Numbered List", 
+      action: () => insertAtCursor("1. ") 
+    },
+    { 
+      icon: <Link className="h-4 w-4" />, 
+      tooltip: "Link", 
+      action: () => insertText("[", "](https://)", "link text") 
+    },
+    { 
+      icon: <Code className="h-4 w-4" />, 
+      tooltip: "Code", 
+      action: () => insertText("`", "`", "code") 
+    },
+    { 
+      icon: <Quote className="h-4 w-4" />, 
+      tooltip: "Blockquote", 
+      action: () => insertAtCursor("> ") 
+    },
+  ];
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
@@ -157,9 +253,51 @@ function CreateBlog() {
     setExistingImageUrl("");
   };
 
+  // Markdown guide examples
+  const markdownExamples = `# Welcome to Markdown!
+
+## Formatting Tips:
+
+**Bold text** and *italic text*
+
+### Lists:
+- Bullet points
+- Another point
+- Third point
+
+### Numbered lists:
+1. First item
+2. Second item
+3. Third item
+
+### Code:
+\`inline code\`
+
+\`\`\`javascript
+// Code blocks
+function hello() {
+  console.log("Hello Markdown!");
+}
+\`\`\`
+
+### Links and Images:
+[Link text](https://example.com)
+
+![Image alt text](https://example.com/image.jpg)
+
+### Blockquotes:
+> This is a blockquote
+> It can span multiple lines
+`;
+
+  const insertMarkdownExample = () => {
+    setContent(markdownExamples);
+    toast.info("Markdown examples added! Feel free to edit them.");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl mb-8">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -327,38 +465,100 @@ function CreateBlog() {
 
               {/* Content */}
               <div className="space-y-2">
-                <Label htmlFor="content" className="text-base font-semibold text-gray-900">
-                  Blog Content
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="content" className="text-base font-semibold text-gray-900">
+                    Blog Content
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={insertMarkdownExample}
+                      className="text-xs"
+                    >
+                      Load Examples
+                    </Button>
+                  </div>
+                </div>
+                
                 <Tabs value={tab} onValueChange={setTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
                     <TabsTrigger 
                       value="write" 
-                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2"
                     >
+                      <Type className="h-4 w-4" />
                       Write
                     </TabsTrigger>
                     <TabsTrigger 
                       value="preview"
-                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2"
                     >
+                      <Eye className="h-4 w-4" />
                       Preview
                     </TabsTrigger>
                   </TabsList>
-                  <TabsContent value="write" className="mt-4">
+                  
+                  <TabsContent value="write" className="mt-4 space-y-3">
+                    {/* Markdown Toolbar */}
+                    <div className="flex flex-wrap gap-1 p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                      {toolbarButtons.map((button, index) => (
+                        <Button
+                          key={index}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={button.action}
+                          className="h-8 w-8 p-0 hover:bg-white"
+                          title={button.tooltip}
+                        >
+                          {button.icon}
+                        </Button>
+                      ))}
+                    </div>
+                    
                     <Textarea
                       id="content"
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                       className="w-full min-h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono text-sm transition-all"
-                      placeholder="Write your amazing content here... (Markdown supported)"
+                      placeholder={`# Start writing your blog here...
+
+Use the toolbar above to format your text, or type Markdown directly:
+
+# Header 1
+## Header 2  
+### Header 3
+
+**Bold text** and *italic text*
+
+- Bullet lists
+- Another item
+
+1. Numbered lists
+2. Second item
+
+[Links](https://example.com)
+
+> Blockquotes
+
+\`inline code\`
+
+\`\`\`javascript
+// Code blocks
+console.log("Hello World!");
+\`\`\``}
                       required
                     />
                   </TabsContent>
+                  
                   <TabsContent value="preview" className="mt-4">
                     <div className="w-full min-h-96 p-6 border border-gray-300 rounded-lg bg-white overflow-y-auto prose prose-sm max-w-none">
                       {content ? (
-                        <ReactMarkdown>{content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {content}
+                        </ReactMarkdown>
                       ) : (
                         <div className="text-center text-gray-500 py-16">
                           <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />

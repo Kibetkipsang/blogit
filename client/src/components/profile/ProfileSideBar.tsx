@@ -13,8 +13,8 @@ function ProfileSidebar({ onEditProfile, onChangePassword }: Props) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout(); // Clear user from store
-    navigate("/blogs"); // Navigate to /blogs after logout
+    logout();
+    navigate("/blogs"); 
   };
 
   const menuItems = [

@@ -106,21 +106,17 @@ export default function ProfileHeader({ onEditProfile, onChangePassword }: Props
           <nav className="flex items-center gap-4 mr-4">
             <Link 
               to="/" 
-              className="text-green-200 hover:text-white transition-colors font-medium"
+              className="text-white hover:text-green-200 transition-colors font-medium"
             >
               Home
             </Link>
             <Link 
               to="/blogs" 
-              className="text-green-200 hover:text-white transition-colors font-medium"
+              className="text-white hover:text-green-200 transition-colors font-medium"
             >
               All Blogs
             </Link>
           </nav>
-          
-          <button className="p-2 rounded-full hover:bg-green-700 transition-colors">
-            <Bell className="w-5 h-5" />
-          </button>
           <Avatar 
             className="w-10 h-10 cursor-pointer border-2 border-green-400"
             onClick={() => navigate("/profile/details")}
