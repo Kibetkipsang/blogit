@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "@/stores/useStore";
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import { api } from "../../axios";
 import { capitalize } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "../ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { toast } from "sonner";
-import { Edit, Trash2, Eye, Calendar, User, Mail, FileText, Plus, Loader2, BarChart3, Heart, MessageCircle } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, User, Mail, FileText, Plus, Loader2, BarChart3, Heart, TrendingUp, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type Blog = {
@@ -20,36 +20,10 @@ type Blog = {
   createdAt: string;
   viewCount?: number;
   likesCount?: number;
-  commentsCount?: number;
   category?: {
     id: string;
     name: string;
   };
-};
-
-type UserBlogsResponse = {
-  success: boolean;
-  message: string;
-  blogs: Blog[];
-  count: number;
-};
-
-// API functions
-const fetchUserBlogs = async (): Promise<Blog[]> => {
-  const response = await api.get("/profile/blogs");
-  
-  if (response.data.success && Array.isArray(response.data.blogs)) {
-    return response.data.blogs;
-  } else if (Array.isArray(response.data)) {
-    return response.data;
-  } else {
-    return [];
-  }
-};
-
-const trashBlog = async (blogId: string): Promise<{ success: boolean; message: string }> => {
-  const response = await api.patch(`/blogs/trash/${blogId}`);
-  return response.data;
 };
 
 function Profile() {
@@ -60,8 +34,9 @@ function Profile() {
   // Delete Blog State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingBlog, setDeletingBlog] = useState<Blog | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  // React Query for blogs
+  // React Query for blogs - with auto-refresh
   const {
     data: blogs = [],
     isLoading: blogsLoading,
@@ -70,32 +45,56 @@ function Profile() {
     refetch: refetchBlogs
   } = useQuery({
     queryKey: ["user-blogs"],
-    queryFn: fetchUserBlogs,
-    enabled: !!user, // Only fetch if user exists
+    queryFn: async (): Promise<Blog[]> => {
+      const response = await api.get("/profile/blogs");
+      
+      if (response.data.success && Array.isArray(response.data.blogs)) {
+        return response.data.blogs;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      } else {
+        return [];
+      }
+    },
+    enabled: !!user,
+    refetchOnWindowFocus: true, // Refresh when tab becomes active
+    staleTime: 30000, // Consider data stale after 30 seconds
   });
 
-  // Delete mutation with optimistic updates
-  const deleteMutation = useMutation({
-    mutationFn: trashBlog,
-    onMutate: async (blogId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["user-blogs"] });
+  // Auto-refresh stats every 2 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["user-blogs"] });
+      setLastUpdated(new Date());
+    }, 120000); // 2 minutes
 
-      // Snapshot the previous value
+    return () => clearInterval(interval);
+  }, [queryClient]);
+
+  // Manual refresh function
+  const handleRefreshStats = () => {
+    queryClient.invalidateQueries({ queryKey: ["user-blogs"] });
+    setLastUpdated(new Date());
+    toast.success("Stats refreshed!");
+  };
+
+  // Delete mutation with proper invalidation
+  const deleteMutation = useMutation({
+    mutationFn: async (blogId: string) => {
+      const response = await api.patch(`/blogs/trash/${blogId}`);
+      return response.data;
+    },
+    onMutate: async (blogId) => {
+      await queryClient.cancelQueries({ queryKey: ["user-blogs"] });
       const previousBlogs = queryClient.getQueryData<Blog[]>(["user-blogs"]);
 
-      // Optimistically update to the new value
       queryClient.setQueryData<Blog[]>(["user-blogs"], (old = []) =>
         old.filter(blog => blog.id !== blogId)
       );
 
-      // Also invalidate trash to refresh trash count
-      queryClient.invalidateQueries({ queryKey: ["trash"] });
-
       return { previousBlogs };
     },
     onError: (err, blogId, context) => {
-      // Rollback on error
       if (context?.previousBlogs) {
         queryClient.setQueryData<Blog[]>(["user-blogs"], context.previousBlogs);
       }
@@ -103,34 +102,44 @@ function Profile() {
     },
     onSuccess: () => {
       toast.success("Blog moved to trash successfully!");
+      // Invalidate to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["user-blogs"] });
     },
     onSettled: () => {
-      // Always refetch to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ["user-blogs"] });
+      queryClient.invalidateQueries({ queryKey: ["trash"] });
     },
   });
 
-  // Calculate real stats from blog data
+  // Calculate real-time stats from current blog data
   const stats = {
     totalBlogs: blogs.length,
     totalViews: blogs.reduce((total, blog) => total + (blog.viewCount || 0), 0),
     totalLikes: blogs.reduce((total, blog) => total + (blog.likesCount || 0), 0),
-    totalComments: blogs.reduce((total, blog) => total + (blog.commentsCount || 0), 0),
-    // Engagement rate: (likes + comments) / views * 100
+    avgViewsPerBlog: blogs.length > 0 ? Math.round(blogs.reduce((total, blog) => total + (blog.viewCount || 0), 0) / blogs.length) : 0,
+    avgLikesPerBlog: blogs.length > 0 ? Math.round(blogs.reduce((total, blog) => total + (blog.likesCount || 0), 0) / blogs.length) : 0,
     engagementRate: blogs.reduce((total, blog) => {
       const views = blog.viewCount || 0;
-      const interactions = (blog.likesCount || 0) + (blog.commentsCount || 0);
-      return views > 0 ? total + (interactions / views) * 100 : total;
+      const likes = blog.likesCount || 0;
+      return views > 0 ? total + (likes / views) * 100 : total;
     }, 0) / Math.max(blogs.length, 1)
   };
 
-  // Edit Blog Function - Navigate to edit page
+  // Find most popular blogs
+  const mostPopularBlog = blogs.length > 0 ? blogs.reduce((prev, current) => 
+    (prev.viewCount || 0) > (current.viewCount || 0) ? prev : current
+  ) : null;
+
+  const mostLikedBlog = blogs.length > 0 ? blogs.reduce((prev, current) => 
+    (prev.likesCount || 0) > (current.likesCount || 0) ? prev : current
+  ) : null;
+
+  // Edit Blog Function
   const handleEditBlog = (blog: Blog) => {
     if (!blog.id) {
       toast.error("Cannot edit blog: Missing blog ID");
       return;
     }
-
     navigate('/create-blog', { 
       state: { 
         isEditing: true,
@@ -157,13 +166,9 @@ function Profile() {
 
   const handleDelete = async () => {
     if (!deletingBlog || !deletingBlog.id) return;
-
-    deleteMutation.mutate(deletingBlog.id, {
-      onSuccess: () => {
-        setDeleteDialogOpen(false);
-        setDeletingBlog(null);
-      }
-    });
+    deleteMutation.mutate(deletingBlog.id);
+    setDeleteDialogOpen(false);
+    setDeletingBlog(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -175,10 +180,20 @@ function Profile() {
   };
 
   const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    }
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'k';
     }
     return num.toString();
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (!user) {
@@ -197,14 +212,27 @@ function Profile() {
   return (
     <section className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-5 m-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Header */}
-        <div className="text-center">
+        {/* Header with Refresh Button */}
+        <div className="text-center relative">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshStats}
+            disabled={blogsLoading}
+            className="absolute right-0 top-0"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${blogsLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Welcome back, <span className="text-green-600">{capitalize(user.firstName)}!</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Manage your content, track your performance, and connect with your readers.
+            Track your blog performance with real-time analytics on views and likes.
           </p>
+          <div className="text-sm text-gray-500 mt-2">
+            Last updated: {formatTime(lastUpdated)}
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -233,27 +261,28 @@ function Profile() {
 
           <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Engagement</CardTitle>
-              <BarChart3 className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.engagementRate.toFixed(1)}%</div>
-              <p className="text-xs text-purple-100">Reader interaction rate</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
               <Heart className="h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatNumber(stats.totalLikes)}</div>
-              <p className="text-xs text-orange-100">Reader appreciation</p>
+              <p className="text-xs text-purple-100">Reader appreciation</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+              <BarChart3 className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.engagementRate.toFixed(1)}%</div>
+              <p className="text-xs text-orange-100">Likes per view ratio</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Rest of your component remains the same... */}
         {/* User Profile Card */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
           <CardHeader>
@@ -300,7 +329,7 @@ function Profile() {
                 Your Blogs
               </CardTitle>
               <CardDescription>
-                Manage and edit your published blog posts
+                Manage and track performance of your blog posts
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -383,7 +412,7 @@ function Profile() {
                         <span>Published {formatDate(blog.createdAt)}</span>
                       </div>
                       
-                      {/* Blog Analytics */}
+                      {/* Blog Analytics - Real-time counts */}
                       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <Eye className="h-3 w-3" />
@@ -392,10 +421,6 @@ function Profile() {
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <Heart className="h-3 w-3" />
                           <span>{blog.likesCount || 0} likes</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <MessageCircle className="h-3 w-3" />
-                          <span>{blog.commentsCount || 0} comments</span>
                         </div>
                       </div>
                     </CardContent>

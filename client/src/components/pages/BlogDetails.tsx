@@ -36,8 +36,15 @@ function BlogDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
+  
+  // Use localStorage to persist like state
+  const [hasLiked, setHasLiked] = useState(() => {
+    if (!user || !id) return false;
+    const likedBlogs = JSON.parse(localStorage.getItem(`likedBlogs_${user.id}`) || '{}');
+    return likedBlogs[id] || false;
+  });
 
-  // Track view count for all users (logged in or not)
+  // Track view count for all users
   useEffect(() => {
     if (id) {
       const trackView = async () => {
@@ -59,56 +66,75 @@ function BlogDetails() {
     },
   });
 
-  // Like mutation
-  const likeMutation = useMutation({
+  // Update localStorage when like state changes
+  useEffect(() => {
+    if (user && id) {
+      const likedBlogs = JSON.parse(localStorage.getItem(`likedBlogs_${user.id}`) || '{}');
+      if (hasLiked) {
+        likedBlogs[id] = true;
+      } else {
+        delete likedBlogs[id];
+      }
+      localStorage.setItem(`likedBlogs_${user.id}`, JSON.stringify(likedBlogs));
+    }
+  }, [hasLiked, user, id]);
+
+  // Single toggle like mutation
+  const toggleLikeMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/blogs/${id}/like`);
-      return res.data;
+      if (hasLiked) {
+        const res = await api.post(`/blogs/${id}/unlike`);
+        return { ...res.data, action: 'unlike' };
+      } else {
+        const res = await api.post(`/blogs/${id}/like`);
+        return { ...res.data, action: 'like' };
+      }
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["blog", id] });
+      const previousBlog = queryClient.getQueryData(["blog", id]);
+
+      // Optimistically update the like count
+      queryClient.setQueryData(["blog", id], (old: any) => ({
+        ...old,
+        likesCount: hasLiked ? (old.likesCount - 1) : (old.likesCount + 1)
+      }));
+
+      // Also update user-blogs query for profile stats
+      queryClient.invalidateQueries({ queryKey: ["user-blogs"] });
+
+      return { previousBlog };
     },
     onSuccess: (data) => {
+      // Update with actual server response
       queryClient.setQueryData(["blog", id], (old: any) => ({
         ...old,
         likesCount: data.likesCount
       }));
-      toast.success("Blog liked!");
+      
+      setHasLiked(data.action === 'like');
+      toast.success(data.action === 'like' ? "Blog liked!" : "Blog unliked!");
     },
-    onError: () => {
-      toast.error("Failed to like blog");
-    }
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousBlog) {
+        queryClient.setQueryData(["blog", id], context.previousBlog);
+      }
+      setHasLiked(!hasLiked);
+      toast.error("Failed to update like");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["blog", id] });
+      queryClient.invalidateQueries({ queryKey: ["user-blogs"] });
+    },
   });
 
-  // Unlike mutation
-  const unlikeMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post(`/blogs/${id}/unlike`);
-      return res.data;
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["blog", id], (old: any) => ({
-        ...old,
-        likesCount: data.likesCount
-      }));
-      toast.success("Blog unliked!");
-    },
-    onError: () => {
-      toast.error("Failed to unlike blog");
-    }
-  });
-
-  const handleLike = () => {
+  const handleToggleLike = () => {
     if (!user) {
       toast.error("Please login to like blogs");
       return;
     }
-    likeMutation.mutate();
-  };
-
-  const handleUnlike = () => {
-    if (!user) {
-      toast.error("Please login to unlike blogs");
-      return;
-    }
-    unlikeMutation.mutate();
+    toggleLikeMutation.mutate();
   };
 
   // Function to extract first and last name from user data
@@ -214,108 +240,103 @@ function BlogDetails() {
         {data && (
           <article className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 md:p-8 lg:p-10">
-              {/* Pinterest-style Layout */}
-              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-                {/* Main Content Area */}
+              {/* L-shaped layout with image on right */}
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-12">
+                {/* Main Content - Left side, wraps around image */}
                 <div className="flex-1 min-w-0">
-                  {/* Category Badge */}
-                  {data.category && (
-                    <Badge 
-                      variant="secondary" 
-                      className="mb-6 bg-green-100 text-green-800 hover:bg-green-200 text-sm font-medium"
-                    >
-                      <Tag className="h-3 w-3 mr-1" />
-                      {data.category.name}
-                    </Badge>
-                  )}
+                  {/* Top section - above image height */}
+                  <div className="lg:pr-12">
+                    {/* Category Badge */}
+                    {data.category && (
+                      <Badge 
+                        variant="secondary" 
+                        className="mb-6 bg-green-100 text-green-800 hover:bg-green-200 text-sm font-medium"
+                      >
+                        <Tag className="h-3 w-3 mr-1" />
+                        {data.category.name}
+                      </Badge>
+                    )}
 
-                  {/* Title */}
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight tracking-tight">
-                    {data.title}
-                  </h1>
+                    {/* Title */}
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight tracking-tight">
+                      {data.title}
+                    </h1>
 
-                  {/* Synopsis */}
-                  {data.synopsis && (
-                    <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed border-l-4 border-green-500 pl-6 py-2 bg-gray-50 rounded-r-lg">
-                      {data.synopsis}
-                    </p>
-                  )}
+                    {/* Synopsis */}
+                    {data.synopsis && (
+                      <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed border-l-4 border-green-500 pl-6 py-2 bg-gray-50 rounded-r-lg">
+                        {data.synopsis}
+                      </p>
+                    )}
 
-                  {/* Meta Information */}
-                  <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-8 text-gray-500">
-                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-                      <User className="h-4 w-4" />
-                      <span className="font-medium">{getAuthorName(data.user)}</span>
+                    {/* Meta Information */}
+                    <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-8 text-gray-500">
+                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+                        <User className="h-4 w-4" />
+                        <span className="font-medium">{getAuthorName(data.user)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+                        <Calendar className="h-4 w-4" />
+                        <span className="font-medium">{new Date(data.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-                      <Calendar className="h-4 w-4" />
-                      <span className="font-medium">{new Date(data.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}</span>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3 mb-8 pb-8 border-b border-gray-200">
+                      {/* Single Toggle Like Button */}
+                      <Button
+                        variant={hasLiked ? "default" : "outline"}
+                        size="sm"
+                        onClick={handleToggleLike}
+                        disabled={toggleLikeMutation.isPending || !user}
+                        className={`flex items-center gap-2 ${
+                          hasLiked 
+                            ? "bg-green-600 hover:bg-green-700 text-white" 
+                            : "hover:bg-green-50"
+                        }`}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                        {hasLiked ? 'Liked' : 'Like'} ({data.likesCount || 0})
+                      </Button>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                          >
+                            <Share2 className="h-4 w-4" />
+                            Share
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                            <Twitter className="h-4 w-4 mr-2" />
+                            Share on Twitter
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                            <Facebook className="h-4 w-4 mr-2" />
+                            Share on Facebook
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+                            <Linkedin className="h-4 w-4 mr-2" />
+                            Share on LinkedIn
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShare('copy')}>
+                            <Link className="h-4 w-4 mr-2" />
+                            Copy Link
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-3 mb-8 pb-8 border-b border-gray-200">
-                    {/* Like Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleLike}
-                      disabled={likeMutation.isPending || !user}
-                      className="flex items-center gap-2"
-                    >
-                      <ThumbsUp className="h-4 w-4" />
-                      Like ({data.likesCount || 0})
-                    </Button>
-
-                    {/* Unlike Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleUnlike}
-                      disabled={unlikeMutation.isPending || !user}
-                      className="flex items-center gap-2 text-red-600 hover:text-red-700"
-                    >
-                      <Heart className="h-4 w-4" />
-                      Unlike
-                    </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-2"
-                        >
-                          <Share2 className="h-4 w-4" />
-                          Share
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-48">
-                        <DropdownMenuItem onClick={() => handleShare('twitter')}>
-                          <Twitter className="h-4 w-4 mr-2" />
-                          Share on Twitter
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleShare('facebook')}>
-                          <Facebook className="h-4 w-4 mr-2" />
-                          Share on Facebook
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleShare('linkedin')}>
-                          <Linkedin className="h-4 w-4 mr-2" />
-                          Share on LinkedIn
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleShare('copy')}>
-                          <Link className="h-4 w-4 mr-2" />
-                          Copy Link
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Blog Content with Markdown */}
+                  {/* Blog Content with Markdown - Continues below image */}
                   <div className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg">
                     <ReactMarkdown 
                       remarkPlugins={[remarkGfm]}
@@ -343,106 +364,123 @@ function BlogDetails() {
                   </div>
                 </div>
 
-                {/* Pinterest-style Side Image */}
+                {/* Featured Image - Right side */}
                 {data.featuredImageUrl && (
-                  <div className="lg:w-96 xl:w-[480px] flex-shrink-0">
-                    <div className="sticky top-24">
-                      <div className="rounded-2xl overflow-hidden shadow-lg group cursor-pointer">
-                        <img
-                          src={data.featuredImageUrl}
-                          alt={data.title}
-                          className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="eager"
-                        />
-                      </div>
-                      
-                      {/* Analytics Stats */}
-                      <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                        <h3 className="font-semibold text-gray-900 mb-3">Article Stats</h3>
-                        <div className="space-y-3 text-sm">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Views:</span>
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                              <Eye className="h-3 w-3 mr-1" />
-                              {data.viewCount || 0}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Likes:</span>
-                            <Badge variant="secondary" className="bg-red-100 text-red-800">
-                              <Heart className="h-3 w-3 mr-1" />
-                              {data.likesCount || 0}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Quick Stats */}
-                      <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                        <h3 className="font-semibold text-gray-900 mb-3">Article Details</h3>
-                        <div className="space-y-2 text-sm text-gray-600">
-                          <div className="flex justify-between">
-                            <span>Published:</span>
-                            <span className="font-medium">{new Date(data.createdAt).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Author:</span>
-                            <span className="font-medium">{getAuthorName(data.user)}</span>
-                          </div>
-                          {data.category && (
-                            <div className="flex justify-between">
-                              <span>Category:</span>
-                              <span className="font-medium">{data.category.name}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Share Sidebar */}
-                      <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                        <h3 className="font-semibold text-gray-900 mb-3">Share this article</h3>
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleShare('twitter')}
-                            className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                          >
-                            <Twitter className="h-4 w-4" />
-                            Share on Twitter
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleShare('facebook')}
-                            className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                          >
-                            <Facebook className="h-4 w-4" />
-                            Share on Facebook
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleShare('linkedin')}
-                            className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                            Share on LinkedIn
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleShare('copy')}
-                            className="flex items-center gap-2 justify-start"
-                          >
-                            <Link className="h-4 w-4" />
-                            Copy Link
-                          </Button>
-                        </div>
-                      </div>
+                  <div className="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0">
+                    <div className="rounded-2xl overflow-hidden shadow-lg sticky top-24">
+                      <img
+                        src={data.featuredImageUrl}
+                        alt={data.title}
+                        className="w-full h-auto object-cover"
+                        loading="eager"
+                      />
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Stats and Share Sections - Below content */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                {/* Article Stats */}
+                <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Article Stats
+                  </h3>
+                  <div className="space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Views:</span>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {data.viewCount || 0}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Likes:</span>
+                      <Badge variant="secondary" className="bg-red-100 text-red-800">
+                        <Heart className="h-3 w-3 mr-1" />
+                        {data.likesCount || 0}
+                      </Badge>
+                    </div>
+                    {user && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Your action:</span>
+                        <Badge variant={hasLiked ? "default" : "secondary"} className={hasLiked ? "bg-green-100 text-green-800" : ""}>
+                          {hasLiked ? 'Liked' : 'Not liked'}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Article Details */}
+                <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Article Details
+                  </h3>
+                  <div className="space-y-3 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Published:</span>
+                      <span className="font-medium">{new Date(data.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Author:</span>
+                      <span className="font-medium">{getAuthorName(data.user)}</span>
+                    </div>
+                    {data.category && (
+                      <div className="flex justify-between">
+                        <span>Category:</span>
+                        <span className="font-medium">{data.category.name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Share Section */}
+                <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Share2 className="h-4 w-4" />
+                    Share this article
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleShare('twitter')}
+                      className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                    >
+                      <Twitter className="h-4 w-4" />
+                      Share on Twitter
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleShare('facebook')}
+                      className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                    >
+                      <Facebook className="h-4 w-4" />
+                      Share on Facebook
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleShare('linkedin')}
+                      className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                    >
+                      <Linkedin className="h-4 w-4" />
+                      Share on LinkedIn
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleShare('copy')}
+                      className="flex items-center gap-2 justify-start"
+                    >
+                      <Link className="h-4 w-4" />
+                      Copy Link
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               {/* Footer */}
@@ -479,8 +517,8 @@ function BlogDetailsSkeleton() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 md:p-8 lg:p-10">
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-              {/* Main Content Skeleton */}
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-12">
+              {/* Content Skeleton */}
               <div className="flex-1 min-w-0 space-y-6">
                 <Skeleton className="h-6 w-24 rounded-full" />
                 <Skeleton className="h-12 w-3/4" />
@@ -508,12 +546,17 @@ function BlogDetailsSkeleton() {
                 </div>
               </div>
 
-              {/* Sidebar Skeleton */}
-              <div className="lg:w-96 xl:w-[480px] flex-shrink-0 space-y-4">
-                <Skeleton className="w-full h-64 rounded-2xl" />
-                <Skeleton className="w-full h-32 rounded-xl" />
-                <Skeleton className="w-full h-40 rounded-xl" />
+              {/* Image Skeleton */}
+              <div className="w-full lg:w-1/3 xl:w-2/5 flex-shrink-0">
+                <Skeleton className="w-full h-96 rounded-2xl" />
               </div>
+            </div>
+
+            {/* Stats Sections Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Skeleton className="w-full h-40 rounded-xl" />
+              <Skeleton className="w-full h-40 rounded-xl" />
+              <Skeleton className="w-full h-40 rounded-xl" />
             </div>
           </div>
         </div>
