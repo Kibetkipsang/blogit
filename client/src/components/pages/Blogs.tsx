@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import React from 'react';
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "@/axios";
 import BlogCard from "./BlogCard";
-import { Search, Grid3X3, List, Home, User, FileText, Menu, X } from "lucide-react";
+import { Search, Grid3X3, List, Home, User, FileText, Menu, X, LogOut, LogIn, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,13 @@ type BlogType = {
     id: string,
     name: string
   };
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+    emailAdress: string;
+  };
   authorName?: string;
   readTime?: string;
 };
@@ -32,6 +40,29 @@ type BlogType = {
 type CategoryType = {
   id: string;
   name: string;
+};
+
+// Function to extract author name from user data
+const getAuthorName = (blog: BlogType): string => {
+  if (!blog) return "Unknown Author";
+  
+  // Check if user object exists with name fields
+  if (blog.user) {
+    const user = blog.user;
+    if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
+    if (user.firstName) return user.firstName;
+    if (user.lastName) return user.lastName;
+    if (user.userName) return user.userName;
+    if (user.emailAdress) {
+      const emailName = user.emailAdress.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+  }
+  
+  // Fallback to old authorName field
+  if (blog.authorName) return blog.authorName;
+  
+  return "Unknown Author";
 };
 
 // Enhanced fetchBlogs with markdown content handling
@@ -95,11 +126,34 @@ const fetchCategories = async () => {
   return res.data;
 };
 
+// Auth hook (you might want to replace this with your actual auth context/hook)
+const useAuth = () => {
+  // This is a placeholder - replace with your actual authentication logic
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Check if user is logged in (you might check localStorage, cookies, or context)
+  React.useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    setIsAuthenticated(!!token);
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    setIsAuthenticated(false);
+    // You might want to redirect to home page or login page
+    window.location.href = '/';
+  };
+
+  return { isAuthenticated, logout };
+};
+
 function Blogs() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("masonry");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const { isAuthenticated, logout } = useAuth();
 
   const { 
     data: blogsData, 
@@ -159,6 +213,11 @@ function Blogs() {
     );
   }
 
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Compact Navigation Header */}
@@ -200,6 +259,37 @@ function Blogs() {
                       <FileText className="h-5 w-5" />
                       <span className="font-medium">Create Blog</span>
                     </Link>
+                    
+                    {/* Mobile Auth Buttons */}
+                    {isAuthenticated ? (
+                      <Button
+                        onClick={handleLogout}
+                        variant="outline"
+                        className="flex items-center gap-3 justify-start text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 mt-4"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        <span className="font-medium">Logout</span>
+                      </Button>
+                    ) : (
+                      <div className="flex flex-col gap-2 mt-4">
+                        <Link 
+                          to="/login" 
+                          className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors p-3 rounded-lg hover:bg-gray-100"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <LogIn className="h-5 w-5" />
+                          <span className="font-medium">Login</span>
+                        </Link>
+                        <Link 
+                          to="/register" 
+                          className="flex items-center gap-3 text-green-600 hover:text-green-700 transition-colors p-3 rounded-lg hover:bg-green-50 border border-green-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <UserPlus className="h-5 w-5" />
+                          <span className="font-medium">Join</span>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </SheetContent>
               </Sheet>
@@ -242,6 +332,43 @@ function Blogs() {
                   className="pl-7 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 h-8 sm:h-9 text-xs sm:text-sm"
                 />
               </div>
+            </div>
+
+            {/* Auth Buttons - Desktop */}
+            <div className="hidden sm:flex items-center gap-2">
+              {isAuthenticated ? (
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 flex items-center gap-2"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Logout</span>
+                </Button>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-700 hover:text-green-600 flex items-center gap-2"
+                    >
+                      <LogIn className="h-3.5 w-3.5" />
+                      <span>Login</span>
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" />
+                      <span>Join</span>
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* View Toggle - Responsive */}
@@ -353,7 +480,7 @@ function Blogs() {
                   title={blog.title}
                   synopsis={blog.synopsis}
                   featuredImageUrl={blog.featuredImageUrl}
-                  authorName={blog.authorName || "Unknown Author"}
+                  authorName={getAuthorName(blog)} // Use the extracted author name
                   createdAt={blog.createdAt}
                   category={blog.category?.name}
                   readTime={blog.readTime}

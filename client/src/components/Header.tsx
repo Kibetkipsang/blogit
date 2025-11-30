@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import useAuthStore from "@/stores/useStore";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, Home, User, FileText, Settings, LogOut, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, Home, User, FileText, Settings, LogOut, LogIn, UserPlus, Info } from "lucide-react";
 import { useState } from "react";
 import {
   Sheet,
@@ -41,7 +41,7 @@ function Header() {
   to="/" 
   className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-white hover:text-green-400 transition-colors"
 >
-  <span className="text-green-500 font-bold text-3xl sm:text-5xl">₿</span>
+  <span className="text-green-500 font-bold text-xl sm:text-5xl">₿</span>
   <span className="text-2xl sm:text-3xl lg:text-2xl tracking-tight">BlogIt</span>
 </Link>
 
@@ -53,6 +53,13 @@ function Header() {
           >
             <Home className="h-4 w-4" />
             Home
+          </Link>
+          <Link 
+            to="/about" 
+            className="flex items-center gap-2 px-3 lg:px-4 py-2 text-gray-300 hover:text-green-400 hover:bg-gray-800 rounded-lg transition-colors text-sm lg:text-base font-medium"
+          >
+            <Info className="h-4 w-4" />
+            About
           </Link>
           <Link 
             to="/blogs" 
@@ -89,7 +96,7 @@ function Header() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-gray-300 border-gray-600 hover:bg-gray-800 hover:text-white hover:border-gray-500"
+                  className="text-black border-gray-600 hover:bg-gray-800 hover:text-white hover:border-gray-500"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Register

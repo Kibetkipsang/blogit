@@ -1,21 +1,21 @@
 import { useParams } from "react-router-dom";
 import { api } from "@/axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { 
   Calendar, 
   User, 
-  Clock, 
   ArrowLeft, 
   Share2, 
-  Bookmark,
   Eye,
   Tag,
   Facebook,
   Twitter,
   Linkedin,
-  Link
+  Link,
+  Heart,
+  ThumbsUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +28,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState, useEffect } from "react";
+import useAuthStore from "@/stores/useStore";
 
 function BlogDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+
+  // Track view count for all users (logged in or not)
+  useEffect(() => {
+    if (id) {
+      const trackView = async () => {
+        try {
+          await api.post(`/blogs/${id}/view`);
+        } catch (error) {
+          console.error("Failed to track view:", error);
+        }
+      };
+      trackView();
+    }
+  }, [id]);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["blog", id],
@@ -41,10 +59,89 @@ function BlogDetails() {
     },
   });
 
+  // Like mutation
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/blogs/${id}/like`);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["blog", id], (old: any) => ({
+        ...old,
+        likesCount: data.likesCount
+      }));
+      toast.success("Blog liked!");
+    },
+    onError: () => {
+      toast.error("Failed to like blog");
+    }
+  });
+
+  // Unlike mutation
+  const unlikeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/blogs/${id}/unlike`);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["blog", id], (old: any) => ({
+        ...old,
+        likesCount: data.likesCount
+      }));
+      toast.success("Blog unliked!");
+    },
+    onError: () => {
+      toast.error("Failed to unlike blog");
+    }
+  });
+
+  const handleLike = () => {
+    if (!user) {
+      toast.error("Please login to like blogs");
+      return;
+    }
+    likeMutation.mutate();
+  };
+
+  const handleUnlike = () => {
+    if (!user) {
+      toast.error("Please login to unlike blogs");
+      return;
+    }
+    unlikeMutation.mutate();
+  };
+
+  // Function to extract first and last name from user data
+  const getAuthorName = (user: any) => {
+    if (!user) return "Unknown Author";
+    
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    
+    if (user.firstName) {
+      return user.firstName;
+    }
+    
+    if (user.lastName) {
+      return user.lastName;
+    }
+    
+    if (user.userName) {
+      return user.userName;
+    }
+    
+    if (user.emailAdress) {
+      const emailName = user.emailAdress.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    
+    return "Unknown Author";
+  };
+
   const handleShare = async (platform?: string) => {
     const shareUrl = window.location.href;
     const title = data?.title || 'Check out this blog post';
-    const text = data?.synopsis || '';
 
     switch (platform) {
       case 'twitter':
@@ -65,7 +162,7 @@ function BlogDetails() {
           try {
             await navigator.share({
               title: title,
-              text: text,
+              text: data?.synopsis || '',
               url: shareUrl,
             });
           } catch (err) {
@@ -76,13 +173,6 @@ function BlogDetails() {
           toast.success("Link copied to clipboard!");
         }
     }
-  };
-
-  const formatReadTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const words = content.split(/\s+/).length;
-    const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} min read`;
   };
 
   if (isLoading) return <BlogDetailsSkeleton />;
@@ -155,7 +245,7 @@ function BlogDetails() {
                   <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-8 text-gray-500">
                     <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
                       <User className="h-4 w-4" />
-                      <span className="font-medium">{data.authorName || "Unknown Author"}</span>
+                      <span className="font-medium">{getAuthorName(data.user)}</span>
                     </div>
                     <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
                       <Calendar className="h-4 w-4" />
@@ -165,14 +255,34 @@ function BlogDetails() {
                         day: 'numeric'
                       })}</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-                      <Clock className="h-4 w-4" />
-                      <span className="font-medium">{formatReadTime(data.content)}</span>
-                    </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-3 mb-8 pb-8 border-b border-gray-200">
+                    {/* Like Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLike}
+                      disabled={likeMutation.isPending || !user}
+                      className="flex items-center gap-2"
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                      Like ({data.likesCount || 0})
+                    </Button>
+
+                    {/* Unlike Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUnlike}
+                      disabled={unlikeMutation.isPending || !user}
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                    >
+                      <Heart className="h-4 w-4" />
+                      Unlike
+                    </Button>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -203,15 +313,6 @@ function BlogDetails() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                      Save
-                    </Button>
                   </div>
 
                   {/* Blog Content with Markdown */}
@@ -255,16 +356,25 @@ function BlogDetails() {
                         />
                       </div>
                       
-                      {/* Save Button - Pinterest Style */}
-                      <div className="mt-4 flex justify-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-2 bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 w-full justify-center"
-                        >
-                          <Bookmark className="h-4 w-4" />
-                          Save
-                        </Button>
+                      {/* Analytics Stats */}
+                      <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+                        <h3 className="font-semibold text-gray-900 mb-3">Article Stats</h3>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Views:</span>
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                              <Eye className="h-3 w-3 mr-1" />
+                              {data.viewCount || 0}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Likes:</span>
+                            <Badge variant="secondary" className="bg-red-100 text-red-800">
+                              <Heart className="h-3 w-3 mr-1" />
+                              {data.likesCount || 0}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Quick Stats */}
@@ -272,16 +382,12 @@ function BlogDetails() {
                         <h3 className="font-semibold text-gray-900 mb-3">Article Details</h3>
                         <div className="space-y-2 text-sm text-gray-600">
                           <div className="flex justify-between">
-                            <span>Reading time:</span>
-                            <span className="font-medium">{formatReadTime(data.content)}</span>
-                          </div>
-                          <div className="flex justify-between">
                             <span>Published:</span>
                             <span className="font-medium">{new Date(data.createdAt).toLocaleDateString()}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Author:</span>
-                            <span className="font-medium">{data.authorName || "Unknown"}</span>
+                            <span className="font-medium">{getAuthorName(data.user)}</span>
                           </div>
                           {data.category && (
                             <div className="flex justify-between">
@@ -385,10 +491,10 @@ function BlogDetailsSkeleton() {
                 <div className="flex flex-wrap gap-4">
                   <Skeleton className="h-10 w-32 rounded-lg" />
                   <Skeleton className="h-10 w-40 rounded-lg" />
-                  <Skeleton className="h-10 w-28 rounded-lg" />
                 </div>
                 
                 <div className="flex gap-3">
+                  <Skeleton className="h-9 w-20 rounded-md" />
                   <Skeleton className="h-9 w-20 rounded-md" />
                   <Skeleton className="h-9 w-20 rounded-md" />
                 </div>
@@ -405,7 +511,6 @@ function BlogDetailsSkeleton() {
               {/* Sidebar Skeleton */}
               <div className="lg:w-96 xl:w-[480px] flex-shrink-0 space-y-4">
                 <Skeleton className="w-full h-64 rounded-2xl" />
-                <Skeleton className="w-full h-10 rounded-md" />
                 <Skeleton className="w-full h-32 rounded-xl" />
                 <Skeleton className="w-full h-40 rounded-xl" />
               </div>

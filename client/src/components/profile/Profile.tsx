@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "../ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { toast } from "sonner";
-import { Edit, Trash2, Eye, Calendar, User, Mail, FileText, Plus, Loader2, BarChart3 } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, User, Mail, FileText, Plus, Loader2, BarChart3, Heart, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type Blog = {
@@ -18,6 +18,9 @@ type Blog = {
   content?: string;
   featuredImageUrl?: string;
   createdAt: string;
+  viewCount?: number;
+  likesCount?: number;
+  commentsCount?: number;
   category?: {
     id: string;
     name: string;
@@ -107,11 +110,18 @@ function Profile() {
     },
   });
 
-  // Stats calculation (derived from blogs data)
+  // Calculate real stats from blog data
   const stats = {
     totalBlogs: blogs.length,
-    totalViews: 0, // You might want to fetch this separately
-    engagementRate: 0, // You might want to fetch this separately
+    totalViews: blogs.reduce((total, blog) => total + (blog.viewCount || 0), 0),
+    totalLikes: blogs.reduce((total, blog) => total + (blog.likesCount || 0), 0),
+    totalComments: blogs.reduce((total, blog) => total + (blog.commentsCount || 0), 0),
+    // Engagement rate: (likes + comments) / views * 100
+    engagementRate: blogs.reduce((total, blog) => {
+      const views = blog.viewCount || 0;
+      const interactions = (blog.likesCount || 0) + (blog.commentsCount || 0);
+      return views > 0 ? total + (interactions / views) * 100 : total;
+    }, 0) / Math.max(blogs.length, 1)
   };
 
   // Edit Blog Function - Navigate to edit page
@@ -164,6 +174,13 @@ function Profile() {
     });
   };
 
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -191,7 +208,7 @@ function Profile() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Blogs</CardTitle>
@@ -209,7 +226,7 @@ function Profile() {
               <Eye className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalViews}</div>
+              <div className="text-2xl font-bold">{formatNumber(stats.totalViews)}</div>
               <p className="text-xs text-blue-100">All-time readers</p>
             </CardContent>
           </Card>
@@ -220,8 +237,19 @@ function Profile() {
               <BarChart3 className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.engagementRate}%</div>
-              <p className="text-xs text-purple-100">Reader interaction</p>
+              <div className="text-2xl font-bold">{stats.engagementRate.toFixed(1)}%</div>
+              <p className="text-xs text-purple-100">Reader interaction rate</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
+              <Heart className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatNumber(stats.totalLikes)}</div>
+              <p className="text-xs text-orange-100">Reader appreciation</p>
             </CardContent>
           </Card>
         </div>
@@ -353,6 +381,22 @@ function Profile() {
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <Calendar className="h-4 w-4" />
                         <span>Published {formatDate(blog.createdAt)}</span>
+                      </div>
+                      
+                      {/* Blog Analytics */}
+                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Eye className="h-3 w-3" />
+                          <span>{blog.viewCount || 0} views</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Heart className="h-3 w-3" />
+                          <span>{blog.likesCount || 0} likes</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <MessageCircle className="h-3 w-3" />
+                          <span>{blog.commentsCount || 0} comments</span>
+                        </div>
                       </div>
                     </CardContent>
                     <CardFooter className="flex gap-2">

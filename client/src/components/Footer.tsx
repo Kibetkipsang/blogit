@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Github, Linkedin, Mail, Heart } from "lucide-react";
 
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -22,7 +23,7 @@ export default function Footer() {
             <div className="flex items-center gap-1 text-gray-500 text-sm">
               <span>Made with</span>
               <Heart className="h-4 w-4 text-red-500 fill-current" />
-              <span>for the community</span>
+              <span>by Kibet Dennis</span>
             </div>
           </div>
 
@@ -90,36 +91,36 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/contact" 
                   className="text-gray-400 hover:text-green-400 transition-colors text-sm sm:text-base block py-1"
                 >
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
-                  href="mailto:support@blogit.com" 
+                <Link 
+                  to="/contact"
                   className="text-gray-400 hover:text-green-400 transition-colors text-sm sm:text-base block py-1"
                 >
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/policy" 
                   className="text-gray-400 hover:text-green-400 transition-colors text-sm sm:text-base block py-1"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/terms" 
                   className="text-gray-400 hover:text-green-400 transition-colors text-sm sm:text-base block py-1"
                 >
                   Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -136,28 +137,28 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex gap-3 mb-6">
               <a 
-                href="#" 
+                href="https://twitter.com" target="_blank"
                 className="w-10 h-10 bg-gray-800 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors group"
                 aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5 text-gray-400 group-hover:text-white" />
               </a>
               <a 
-                href="#" 
+                href="https://github.com/kibetkipsang" target="_blank"
                 className="w-10 h-10 bg-gray-800 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors group"
                 aria-label="GitHub"
               >
                 <Github className="h-5 w-5 text-gray-400 group-hover:text-white" />
               </a>
               <a 
-                href="#" 
+                href="https://linkedin.com" target="_blank"
                 className="w-10 h-10 bg-gray-800 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors group"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5 text-gray-400 group-hover:text-white" />
               </a>
               <a 
-                href="#" 
+                href="https://facebook.com"  target="_blank"
                 className="w-10 h-10 bg-gray-800 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors group"
                 aria-label="Facebook"
               >
@@ -185,15 +186,15 @@ export default function Footer() {
               &copy; {currentYear} BlogIt. All rights reserved.
             </div>
             <div className="flex gap-6 text-gray-500 text-sm">
-              <a href="#" className="hover:text-green-400 transition-colors">
+              <Link to="/policy" className="hover:text-green-400 transition-colors">
                 Privacy
-              </a>
-              <a href="#" className="hover:text-green-400 transition-colors">
+              </Link>
+              <Link to="/terms" className="hover:text-green-400 transition-colors">
                 Terms
-              </a>
-              <a href="#" className="hover:text-green-400 transition-colors">
+              </Link>
+              <Link to="/login" className="hover:text-green-400 transition-colors">
                 Cookies
-              </a>
+              </Link>
             </div>
           </div>
         </div>

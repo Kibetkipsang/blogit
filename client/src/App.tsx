@@ -19,6 +19,10 @@ import BlogArticleHeader from "./components/pages/BlogsHeader";
 import ProfileLayout from "./components/profile/ProfileLayout";
 import ProfileHeader from "./components/profile/ProfileHeader";
 import Trash from "./components/profile/UserTrash";
+import About from "./components/about"
+import TermsOfService from "./components/terms"
+import PrivacyPolicy from "./components/PrivacyPolicy"
+import HelpCenter from "./components/Contacts"
 
 function App() {
   const location = useLocation();
@@ -42,6 +46,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/policy" element={<PrivacyPolicy />} />
+          <Route path="/contact" element={<HelpCenter />} />
           <Route path="/profile" element={<ProfileLayout />}>
             <Route index element={<Profile />} />
             <Route path="header" element={<ProfileHeader />} />

@@ -14,7 +14,7 @@ import { Badge } from "../ui/badge";
 import { 
   Loader2, ArrowLeft, Save, FileText, Image as ImageIcon, Edit3,
   Bold, Italic, List, ListOrdered, Link, Quote, Code, Heading1, 
-  Heading2, Heading3, Eye, Type
+  Heading2, Heading3, Eye, Type, User
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
@@ -38,6 +38,14 @@ type BlogData = {
     id: string;
     name: string;
   };
+  user?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+    email?: string;
+    username?: string;
+  };
 };
 
 const createBlog = async (formData: BlogContentType) => {
@@ -54,6 +62,38 @@ const fetchCategories = async () => {
   const res = await api.get("/categories");
   return res.data;
 }
+
+// Helper function to extract author name from user data
+const getAuthorName = (user: any) => {
+  if (!user) return "Unknown Author";
+  
+  if (user.name) {
+    return user.name;
+  }
+  
+  if (user.firstName && user.lastName) {
+    return `${user.firstName} ${user.lastName}`;
+  }
+  
+  if (user.firstName) {
+    return user.firstName;
+  }
+  
+  if (user.lastName) {
+    return user.lastName;
+  }
+  
+  if (user.username) {
+    return user.username;
+  }
+  
+  if (user.email) {
+    const emailName = user.email.split('@')[0];
+    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+  }
+  
+  return "Unknown Author";
+};
 
 function CreateBlog() {
   const user = useAuthStore((state) => state.user);
@@ -73,6 +113,15 @@ function CreateBlog() {
   const [tab, setTab] = useState("write");
   const [categories, setCategories] = useState([]);
 
+  // User validation effect
+  useEffect(() => {
+    if (!user) {
+      toast.error("Please log in to create or edit blogs");
+      navigate("/login");
+      return;
+    }
+  }, [user, navigate]);
+
   // Initialize form with blog data if in edit mode
   useEffect(() => {
     if (isEditing && blogData) {
@@ -84,8 +133,14 @@ function CreateBlog() {
         setCategory(blogData.category.name);
         setCategoryId(blogData.category.id);
       }
+      
+      // Authorization check for edit mode
+      if (blogData.user && blogData.user.id !== user?.id) {
+        toast.error("You can only edit your own blogs");
+        navigate("/blogs");
+      }
     }
-  }, [isEditing, blogData]);
+  }, [isEditing, blogData, user, navigate]);
 
   const { mutate: createMutate, isPending: isCreating } = useMutation({
     mutationKey: ["createBlog"],
@@ -219,6 +274,7 @@ function CreateBlog() {
     e.preventDefault();
 
     if (!user) {
+      toast.error("Please log in to continue");
       navigate("/login");
       return;
     }
@@ -337,6 +393,21 @@ function hello() {
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Author Display */}
+              {user && (
+                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <User className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">
+                      This blog will be published under:
+                    </p>
+                    <p className="text-lg font-semibold text-green-900">
+                      {getAuthorName(user)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Title */}
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-base font-semibold text-gray-900">
