@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { api } from "../../../axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +18,11 @@ interface EditCategoryModalProps {
   onClose: () => void;
 }
 
-export default function EditCategoryModal({ category, open, onClose }: EditCategoryModalProps) {
+export default function EditCategoryModal({
+  category,
+  open,
+  onClose,
+}: EditCategoryModalProps) {
   const [name, setName] = useState(category.name);
   const queryClient = useQueryClient();
 
@@ -20,7 +30,7 @@ export default function EditCategoryModal({ category, open, onClose }: EditCateg
     mutationFn: (updatedName: string) =>
       api.patch(`/categories/${category.id}`, { name: updatedName }),
     onSuccess: () => {
-      queryClient.invalidateQueries( { queryKey: ["categories"] }); 
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       onClose();
     },
     onError: (error: any) => {
@@ -51,10 +61,19 @@ export default function EditCategoryModal({ category, open, onClose }: EditCateg
             />
           </div>
           <DialogFooter className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="bg-red-600 hover:bg-red-700 hover:text-white text-white">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="bg-red-600 hover:bg-red-700 hover:text-white text-white"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={mutation.isPending} className="bg-green-700 hover:bg-green-800">
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="bg-green-700 hover:bg-green-800"
+            >
               {mutation.isPending ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>

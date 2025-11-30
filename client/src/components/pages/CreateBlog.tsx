@@ -9,12 +9,34 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { Badge } from "../ui/badge";
-import { 
-  Loader2, ArrowLeft, Save, FileText, Image as ImageIcon, Edit3,
-  Bold, Italic, List, ListOrdered, Link, Quote, Code, Heading1, 
-  Heading2, Heading3, Eye, Type, User
+import {
+  Loader2,
+  ArrowLeft,
+  Save,
+  FileText,
+  Image as ImageIcon,
+  Edit3,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Link,
+  Quote,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  Eye,
+  Type,
+  User,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
@@ -61,37 +83,37 @@ const updateBlog = async (blogId: string, formData: BlogContentType) => {
 const fetchCategories = async () => {
   const res = await api.get("/categories");
   return res.data;
-}
+};
 
 // Helper function to extract author name from user data
 const getAuthorName = (user: any) => {
   if (!user) return "Unknown Author";
-  
+
   if (user.name) {
     return user.name;
   }
-  
+
   if (user.firstName && user.lastName) {
     return `${user.firstName} ${user.lastName}`;
   }
-  
+
   if (user.firstName) {
     return user.firstName;
   }
-  
+
   if (user.lastName) {
     return user.lastName;
   }
-  
+
   if (user.username) {
     return user.username;
   }
-  
+
   if (user.email) {
-    const emailName = user.email.split('@')[0];
+    const emailName = user.email.split("@")[0];
     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
   }
-  
+
   return "Unknown Author";
 };
 
@@ -99,10 +121,10 @@ function CreateBlog() {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Get edit mode from navigation state
   const { isEditing, blogId, blogData } = location.state || {};
-  
+
   const [title, setTitle] = useState("");
   const [synopsis, setSynopsis] = useState("");
   const [content, setContent] = useState("");
@@ -133,7 +155,7 @@ function CreateBlog() {
         setCategory(blogData.category.name);
         setCategoryId(blogData.category.id);
       }
-      
+
       // Authorization check for edit mode
       if (blogData.user && blogData.user.id !== user?.id) {
         toast.error("You can only edit your own blogs");
@@ -166,7 +188,11 @@ function CreateBlog() {
     },
   });
 
-  const { data, isLoading: isCategoriesLoading, error: categoriesError } = useQuery({
+  const {
+    data,
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+  } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
   });
@@ -180,17 +206,26 @@ function CreateBlog() {
   const isPending = isCreating || isUpdating;
 
   // Markdown formatting functions
-  const insertText = (before: string, after: string = "", defaultText: string = "") => {
+  const insertText = (
+    before: string,
+    after: string = "",
+    defaultText: string = "",
+  ) => {
     const textarea = document.getElementById("content") as HTMLTextAreaElement;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end) || defaultText;
-    
-    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
+
+    const newText =
+      content.substring(0, start) +
+      before +
+      selectedText +
+      after +
+      content.substring(end);
     setContent(newText);
-    
+
     // Set cursor position after insertion
     setTimeout(() => {
       textarea.focus();
@@ -206,9 +241,9 @@ function CreateBlog() {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const newText = content.substring(0, start) + text + content.substring(end);
-    
+
     setContent(newText);
-    
+
     // Set cursor position after insertion
     setTimeout(() => {
       textarea.focus();
@@ -218,55 +253,55 @@ function CreateBlog() {
 
   // Toolbar buttons configuration
   const toolbarButtons = [
-    { 
-      icon: <Heading1 className="h-4 w-4" />, 
-      tooltip: "Heading 1", 
-      action: () => insertAtCursor("# ") 
+    {
+      icon: <Heading1 className="h-4 w-4" />,
+      tooltip: "Heading 1",
+      action: () => insertAtCursor("# "),
     },
-    { 
-      icon: <Heading2 className="h-4 w-4" />, 
-      tooltip: "Heading 2", 
-      action: () => insertAtCursor("## ") 
+    {
+      icon: <Heading2 className="h-4 w-4" />,
+      tooltip: "Heading 2",
+      action: () => insertAtCursor("## "),
     },
-    { 
-      icon: <Heading3 className="h-4 w-4" />, 
-      tooltip: "Heading 3", 
-      action: () => insertAtCursor("### ") 
+    {
+      icon: <Heading3 className="h-4 w-4" />,
+      tooltip: "Heading 3",
+      action: () => insertAtCursor("### "),
     },
-    { 
-      icon: <Bold className="h-4 w-4" />, 
-      tooltip: "Bold", 
-      action: () => insertText("**", "**", "bold text") 
+    {
+      icon: <Bold className="h-4 w-4" />,
+      tooltip: "Bold",
+      action: () => insertText("**", "**", "bold text"),
     },
-    { 
-      icon: <Italic className="h-4 w-4" />, 
-      tooltip: "Italic", 
-      action: () => insertText("*", "*", "italic text") 
+    {
+      icon: <Italic className="h-4 w-4" />,
+      tooltip: "Italic",
+      action: () => insertText("*", "*", "italic text"),
     },
-    { 
-      icon: <List className="h-4 w-4" />, 
-      tooltip: "Bullet List", 
-      action: () => insertAtCursor("- ") 
+    {
+      icon: <List className="h-4 w-4" />,
+      tooltip: "Bullet List",
+      action: () => insertAtCursor("- "),
     },
-    { 
-      icon: <ListOrdered className="h-4 w-4" />, 
-      tooltip: "Numbered List", 
-      action: () => insertAtCursor("1. ") 
+    {
+      icon: <ListOrdered className="h-4 w-4" />,
+      tooltip: "Numbered List",
+      action: () => insertAtCursor("1. "),
     },
-    { 
-      icon: <Link className="h-4 w-4" />, 
-      tooltip: "Link", 
-      action: () => insertText("[", "](https://)", "link text") 
+    {
+      icon: <Link className="h-4 w-4" />,
+      tooltip: "Link",
+      action: () => insertText("[", "](https://)", "link text"),
     },
-    { 
-      icon: <Code className="h-4 w-4" />, 
-      tooltip: "Code", 
-      action: () => insertText("`", "`", "code") 
+    {
+      icon: <Code className="h-4 w-4" />,
+      tooltip: "Code",
+      action: () => insertText("`", "`", "code"),
     },
-    { 
-      icon: <Quote className="h-4 w-4" />, 
-      tooltip: "Blockquote", 
-      action: () => insertAtCursor("> ") 
+    {
+      icon: <Quote className="h-4 w-4" />,
+      tooltip: "Blockquote",
+      action: () => insertAtCursor("> "),
     },
   ];
 
@@ -285,13 +320,13 @@ function CreateBlog() {
         const uploadResult = await uploadToCloudinary(featuredImageUrl);
         imageUrl = uploadResult.secure_url;
       }
-      
+
       const formData: BlogContentType = {
         title,
         synopsis,
         content,
         featuredImageUrl: imageUrl,
-        ...(categoryId && { categoryId })
+        ...(categoryId && { categoryId }),
       };
 
       if (isEditing && blogId) {
@@ -373,15 +408,17 @@ function hello() {
                   {isEditing ? "Edit Blog" : "Create New Blog"}
                 </CardTitle>
                 <CardDescription className="text-lg">
-                  {isEditing 
-                    ? "Update your blog content and information" 
-                    : "Share your thoughts and experiences with the world"
-                  }
+                  {isEditing
+                    ? "Update your blog content and information"
+                    : "Share your thoughts and experiences with the world"}
                 </CardDescription>
               </div>
             </div>
             {isEditing && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 text-sm py-1 px-3">
+              <Badge
+                variant="secondary"
+                className="bg-green-100 text-green-800 text-sm py-1 px-3"
+              >
                 <Edit3 className="h-3 w-3 mr-1" />
                 Editing Mode
               </Badge>
@@ -410,7 +447,10 @@ function hello() {
 
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-base font-semibold text-gray-900">
+                <Label
+                  htmlFor="title"
+                  className="text-base font-semibold text-gray-900"
+                >
                   Blog Title
                 </Label>
                 <Input
@@ -426,7 +466,10 @@ function hello() {
 
               {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-base font-semibold text-gray-900">
+                <Label
+                  htmlFor="category"
+                  className="text-base font-semibold text-gray-900"
+                >
                   Category
                 </Label>
                 {isCategoriesLoading ? (
@@ -441,7 +484,9 @@ function hello() {
                     id="category"
                     value={categoryId}
                     onChange={(e) => {
-                      const selectedCategory = categories.find((cat: any) => cat.id === e.target.value);
+                      const selectedCategory = categories.find(
+                        (cat: any) => cat.id === e.target.value,
+                      );
                       setCategoryId(e.target.value);
                       setCategory(selectedCategory?.name || "");
                     }}
@@ -460,7 +505,10 @@ function hello() {
 
               {/* Synopsis */}
               <div className="space-y-2">
-                <Label htmlFor="synopsis" className="text-base font-semibold text-gray-900">
+                <Label
+                  htmlFor="synopsis"
+                  className="text-base font-semibold text-gray-900"
+                >
                   Synopsis
                 </Label>
                 <Textarea
@@ -476,7 +524,10 @@ function hello() {
 
               {/* Featured Image */}
               <div className="space-y-2">
-                <Label htmlFor="image" className="text-base font-semibold text-gray-900">
+                <Label
+                  htmlFor="image"
+                  className="text-base font-semibold text-gray-900"
+                >
                   Featured Image
                 </Label>
                 <div className="space-y-3">
@@ -505,7 +556,7 @@ function hello() {
                       "
                     />
                   </div>
-                  
+
                   {/* Image Preview */}
                   {(featuredImageUrl || existingImageUrl) && (
                     <div className="relative group">
@@ -513,7 +564,9 @@ function hello() {
                         <ImageIcon className="h-8 w-8 text-green-600" />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">
-                            {featuredImageUrl ? featuredImageUrl.name : "Current Image"}
+                            {featuredImageUrl
+                              ? featuredImageUrl.name
+                              : "Current Image"}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
                             {existingImageUrl || "New image selected"}
@@ -537,7 +590,10 @@ function hello() {
               {/* Content */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="content" className="text-base font-semibold text-gray-900">
+                  <Label
+                    htmlFor="content"
+                    className="text-base font-semibold text-gray-900"
+                  >
                     Blog Content
                   </Label>
                   <div className="flex items-center gap-2">
@@ -552,17 +608,17 @@ function hello() {
                     </Button>
                   </div>
                 </div>
-                
+
                 <Tabs value={tab} onValueChange={setTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
-                    <TabsTrigger 
-                      value="write" 
+                    <TabsTrigger
+                      value="write"
                       className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2"
                     >
                       <Type className="h-4 w-4" />
                       Write
                     </TabsTrigger>
-                    <TabsTrigger 
+                    <TabsTrigger
                       value="preview"
                       className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all flex items-center gap-2"
                     >
@@ -570,7 +626,7 @@ function hello() {
                       Preview
                     </TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="write" className="mt-4 space-y-3">
                     {/* Markdown Toolbar */}
                     <div className="flex flex-wrap gap-1 p-3 bg-gray-50 border border-gray-300 rounded-lg">
@@ -588,7 +644,7 @@ function hello() {
                         </Button>
                       ))}
                     </div>
-                    
+
                     <Textarea
                       id="content"
                       value={content}
@@ -623,7 +679,7 @@ console.log("Hello World!");
                       required
                     />
                   </TabsContent>
-                  
+
                   <TabsContent value="preview" className="mt-4">
                     <div className="w-full min-h-96 p-6 border border-gray-300 rounded-lg bg-white overflow-y-auto prose prose-sm max-w-none">
                       {content ? (
@@ -633,7 +689,10 @@ console.log("Hello World!");
                       ) : (
                         <div className="text-center text-gray-500 py-16">
                           <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <p>Nothing to preview yet. Start writing to see your content here.</p>
+                          <p>
+                            Nothing to preview yet. Start writing to see your
+                            content here.
+                          </p>
                         </div>
                       )}
                     </div>

@@ -1,0 +1,24 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Blogs] ADD [DisabledAt] DATETIME2,
+[DisabledReason] NVARCHAR(1000),
+[IsDisabled] BIT NOT NULL CONSTRAINT [Blogs_IsDisabled_df] DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE [dbo].[Users] ADD [IsActive] BIT NOT NULL CONSTRAINT [Users_IsActive_df] DEFAULT 1;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

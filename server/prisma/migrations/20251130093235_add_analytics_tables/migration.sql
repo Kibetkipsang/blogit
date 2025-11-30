@@ -1,0 +1,21 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Blogs] ADD [CommentsCount] INT NOT NULL CONSTRAINT [Blogs_CommentsCount_df] DEFAULT 0,
+[LikesCount] INT NOT NULL CONSTRAINT [Blogs_LikesCount_df] DEFAULT 0,
+[ViewCount] INT NOT NULL CONSTRAINT [Blogs_ViewCount_df] DEFAULT 0;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

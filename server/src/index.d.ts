@@ -1,12 +1,11 @@
-import express from  "express";
-
+import express from "express";
 
 interface User {
-    id: string,
-    firstName: string,
-    lastName: string,
-    userName: string,
-    emailAdress: string
+  id: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  emailAdress: string;
 }
 
 declare global {

@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { 
-  Mail, 
-  Phone, 
-  MessageCircle, 
-  Clock, 
-  Search, 
-  HelpCircle, 
-  FileText, 
-  Users, 
-  Shield, 
+import {
+  Mail,
+  Phone,
+  MessageCircle,
+  Clock,
+  Search,
+  HelpCircle,
+  FileText,
+  Users,
+  Shield,
   CreditCard,
   BookOpen,
   Send,
   CheckCircle,
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,37 +29,45 @@ export default function HelpCenter() {
     email: "",
     subject: "",
     message: "",
-    category: "general"
+    category: "general",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const toggleFaq = (index: number) => {
-    setOpenFaqs(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
+    setOpenFaqs((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     setIsSubmitting(false);
     setIsSubmitted(true);
-    setFormData({ name: "", email: "", subject: "", message: "", category: "general" });
-    
+    setFormData({
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+      category: "general",
+    });
+
     // Reset success message after 5 seconds
     setTimeout(() => setIsSubmitted(false), 5000);
   };
@@ -70,88 +78,97 @@ export default function HelpCenter() {
       name: "General Help",
       icon: HelpCircle,
       description: "Common questions and basic guidance",
-      color: "blue"
+      color: "blue",
     },
     {
       id: "account",
       name: "Account & Profile",
       icon: Users,
       description: "Login, registration, and profile settings",
-      color: "green"
+      color: "green",
     },
     {
       id: "writing",
       name: "Writing & Publishing",
       icon: BookOpen,
       description: "Creating and managing your blog posts",
-      color: "purple"
+      color: "purple",
     },
     {
       id: "billing",
       name: "Billing & Plans",
       icon: CreditCard,
       description: "Payment, subscriptions, and billing issues",
-      color: "orange"
+      color: "orange",
     },
     {
       id: "privacy",
       name: "Privacy & Security",
       icon: Shield,
       description: "Data protection and account security",
-      color: "red"
+      color: "red",
     },
     {
       id: "technical",
       name: "Technical Issues",
       icon: FileText,
       description: "Bugs, errors, and technical problems",
-      color: "indigo"
-    }
+      color: "indigo",
+    },
   ];
 
   const faqs = {
     general: [
       {
         question: "What is BlogIt and how does it work?",
-        answer: "BlogIt is a modern blogging platform that allows writers to share their stories, connect with readers, and build their audience. You can create an account, write articles using our markdown editor, and publish them to reach a global audience."
+        answer:
+          "BlogIt is a modern blogging platform that allows writers to share their stories, connect with readers, and build their audience. You can create an account, write articles using our markdown editor, and publish them to reach a global audience.",
       },
       {
         question: "Is BlogIt free to use?",
-        answer: "Yes! BlogIt offers a free plan that includes all essential features for writing and publishing. We also offer premium plans with additional features for professional writers and content creators."
+        answer:
+          "Yes! BlogIt offers a free plan that includes all essential features for writing and publishing. We also offer premium plans with additional features for professional writers and content creators.",
       },
       {
         question: "How do I get started with BlogIt?",
-        answer: "Getting started is easy! Simply click the 'Register' button in the top navigation, create your account, and you can immediately start writing your first blog post. No credit card required for the free plan."
-      }
+        answer:
+          "Getting started is easy! Simply click the 'Register' button in the top navigation, create your account, and you can immediately start writing your first blog post. No credit card required for the free plan.",
+      },
     ],
     account: [
       {
         question: "How do I reset my password?",
-        answer: "Click on 'Login' and then 'Forgot Password'. Enter your email address and we'll send you a password reset link. Make sure to check your spam folder if you don't see the email."
+        answer:
+          "Click on 'Login' and then 'Forgot Password'. Enter your email address and we'll send you a password reset link. Make sure to check your spam folder if you don't see the email.",
       },
       {
         question: "Can I change my username?",
-        answer: "Yes, you can change your username from your profile settings. Go to your profile page, click 'Edit Profile', and update your username. Note that your old username will become available for others."
+        answer:
+          "Yes, you can change your username from your profile settings. Go to your profile page, click 'Edit Profile', and update your username. Note that your old username will become available for others.",
       },
       {
         question: "How do I delete my account?",
-        answer: "You can delete your account from the settings page in your profile. Please note that this action is permanent and will remove all your content and data from our platform."
-      }
+        answer:
+          "You can delete your account from the settings page in your profile. Please note that this action is permanent and will remove all your content and data from our platform.",
+      },
     ],
     writing: [
       {
         question: "What formatting options are available?",
-        answer: "BlogIt supports markdown formatting, allowing you to create rich content with headers, lists, code blocks, images, and more. We also provide a live preview so you can see how your post will look."
+        answer:
+          "BlogIt supports markdown formatting, allowing you to create rich content with headers, lists, code blocks, images, and more. We also provide a live preview so you can see how your post will look.",
       },
       {
         question: "Can I schedule posts for later publication?",
-        answer: "Yes! When creating or editing a post, you can set a future publication date and time. Your post will automatically publish at the scheduled time."
+        answer:
+          "Yes! When creating or editing a post, you can set a future publication date and time. Your post will automatically publish at the scheduled time.",
       },
       {
         question: "How do I add images to my blog posts?",
-        answer: "You can upload images directly from your computer or add images from URLs. We recommend using high-quality images and proper alt text for accessibility."
-      }
-    ]
+        answer:
+          "You can upload images directly from your computer or add images from URLs. We recommend using high-quality images and proper alt text for accessibility.",
+      },
+    ],
   };
 
   const getColorClasses = (color: string) => {
@@ -161,7 +178,7 @@ export default function HelpCenter() {
       purple: "bg-purple-100 text-purple-600",
       orange: "bg-orange-100 text-orange-600",
       red: "bg-red-100 text-red-600",
-      indigo: "bg-indigo-100 text-indigo-600"
+      indigo: "bg-indigo-100 text-indigo-600",
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -175,11 +192,9 @@ export default function HelpCenter() {
             How can we help you?
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Find answers to common questions or get in touch with our support team. 
-            We're here to help you succeed with BlogIt.
+            Find answers to common questions or get in touch with our support
+            team. We're here to help you succeed with BlogIt.
           </p>
-          
-          
         </div>
 
         {/* Help Categories */}
@@ -195,12 +210,14 @@ export default function HelpCenter() {
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
                   className={`bg-white rounded-2xl p-6 shadow-sm border-2 transition-all hover:shadow-md text-left ${
-                    activeCategory === category.id 
-                      ? 'border-green-500 shadow-md' 
-                      : 'border-gray-200 hover:border-green-300'
+                    activeCategory === category.id
+                      ? "border-green-500 shadow-md"
+                      : "border-gray-200 hover:border-green-300"
                   }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${getColorClasses(category.color)}`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${getColorClasses(category.color)}`}
+                  >
                     <Icon className="h-6 w-6" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -222,30 +239,35 @@ export default function HelpCenter() {
               Frequently Asked Questions
             </h2>
             <div className="space-y-4">
-              {(faqs[activeCategory as keyof typeof faqs] || []).map((faq, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg">
-                  <button
-                    onClick={() => toggleFaq(index)}
-                    className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+              {(faqs[activeCategory as keyof typeof faqs] || []).map(
+                (faq, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg"
                   >
-                    <span className="text-lg font-medium text-gray-900 pr-4">
-                      {faq.question}
-                    </span>
-                    {openFaqs.includes(index) ? (
-                      <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                    <button
+                      onClick={() => toggleFaq(index)}
+                      className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-lg font-medium text-gray-900 pr-4">
+                        {faq.question}
+                      </span>
+                      {openFaqs.includes(index) ? (
+                        <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                      )}
+                    </button>
+                    {openFaqs.includes(index) && (
+                      <div className="px-6 pb-4">
+                        <p className="text-gray-600 leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
                     )}
-                  </button>
-                  {openFaqs.includes(index) && (
-                    <div className="px-6 pb-4">
-                      <p className="text-gray-600 leading-relaxed">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -269,8 +291,8 @@ export default function HelpCenter() {
                   <p className="text-gray-600 mb-2">
                     Send us an email and we'll respond within 24 hours
                   </p>
-                  <a 
-                    href="mailto:support@blogit.com" 
+                  <a
+                    href="mailto:support@blogit.com"
                     className="text-green-600 hover:text-green-700 font-medium"
                   >
                     support@blogit.com
@@ -304,8 +326,9 @@ export default function HelpCenter() {
                     Response Time
                   </h3>
                   <p className="text-gray-600">
-                    We typically respond to all inquiries within 4-6 hours during business hours. 
-                    Emergency issues are prioritized for immediate attention.
+                    We typically respond to all inquiries within 4-6 hours
+                    during business hours. Emergency issues are prioritized for
+                    immediate attention.
                   </p>
                 </div>
               </div>
@@ -323,8 +346,12 @@ export default function HelpCenter() {
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <div>
-                    <p className="text-green-800 font-medium">Message sent successfully!</p>
-                    <p className="text-green-700 text-sm">We'll get back to you within 24 hours.</p>
+                    <p className="text-green-800 font-medium">
+                      Message sent successfully!
+                    </p>
+                    <p className="text-green-700 text-sm">
+                      We'll get back to you within 24 hours.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -333,7 +360,10 @@ export default function HelpCenter() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Your Name *
                   </label>
                   <Input
@@ -347,7 +377,10 @@ export default function HelpCenter() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email Address *
                   </label>
                   <Input
@@ -363,7 +396,10 @@ export default function HelpCenter() {
               </div>
 
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Issue Category *
                 </label>
                 <select
@@ -374,7 +410,7 @@ export default function HelpCenter() {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
-                  {helpCategories.map(category => (
+                  {helpCategories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -383,7 +419,10 @@ export default function HelpCenter() {
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="subject"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Subject *
                 </label>
                 <Input
@@ -398,7 +437,10 @@ export default function HelpCenter() {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Message *
                 </label>
                 <Textarea
@@ -432,7 +474,8 @@ export default function HelpCenter() {
               </Button>
 
               <p className="text-gray-500 text-sm text-center">
-                By submitting this form, you agree to our privacy policy and terms of service.
+                By submitting this form, you agree to our privacy policy and
+                terms of service.
               </p>
             </form>
           </div>
@@ -447,12 +490,16 @@ export default function HelpCenter() {
                 Urgent Support Needed?
               </h3>
               <p className="text-yellow-700">
-                For critical issues requiring immediate attention (security concerns, account compromise, 
-                or platform downtime), please email{' '}
-                <a href="mailto:urgent@blogit.com" className="font-semibold underline">
+                For critical issues requiring immediate attention (security
+                concerns, account compromise, or platform downtime), please
+                email{" "}
+                <a
+                  href="mailto:urgent@blogit.com"
+                  className="font-semibold underline"
+                >
                   urgent@blogit.com
-                </a>
-                {' '}and include "URGENT" in the subject line.
+                </a>{" "}
+                and include "URGENT" in the subject line.
               </p>
             </div>
           </div>

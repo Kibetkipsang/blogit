@@ -16,10 +16,10 @@ type AuthStore = {
 };
 
 const useAuthStore = create<AuthStore>((set) => ({
-
-  user: typeof window !== "undefined"
-    ? JSON.parse(localStorage.getItem("user") || "null")
-    : null,
+  user:
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null,
 
   setUser: (user) => {
     set({ user });

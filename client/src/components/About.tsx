@@ -17,8 +17,9 @@ export default function About() {
             About <span className="text-green-600">BlogIt</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Empowering writers and readers through decentralized knowledge sharing. 
-            Built on the principles of transparency, community, and free expression.
+            Empowering writers and readers through decentralized knowledge
+            sharing. Built on the principles of transparency, community, and
+            free expression.
           </p>
         </div>
 
@@ -28,56 +29,73 @@ export default function About() {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
               <BookOpen className="h-6 w-6 text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              Our Mission
+            </h3>
             <p className="text-gray-600 leading-relaxed">
-              To create a platform where every voice can be heard and every story can be shared. 
-              We believe in the power of written word to inspire, educate, and connect people across the globe.
+              To create a platform where every voice can be heard and every
+              story can be shared. We believe in the power of written word to
+              inspire, educate, and connect people across the globe.
             </p>
           </div>
-          
+
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
               <Users className="h-6 w-6 text-blue-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              Our Vision
+            </h3>
             <p className="text-gray-600 leading-relaxed">
-              A world where knowledge is freely accessible, content creators are fairly recognized, 
-              and communities thrive through meaningful conversations and shared learning.
+              A world where knowledge is freely accessible, content creators are
+              fairly recognized, and communities thrive through meaningful
+              conversations and shared learning.
             </p>
           </div>
         </div>
 
         {/* Features */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Why Choose BlogIt?</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Why Choose BlogIt?
+          </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-purple-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Secure & Private</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Secure & Private
+              </h3>
               <p className="text-gray-600">
-                Your data and content are protected with enterprise-grade security measures.
+                Your data and content are protected with enterprise-grade
+                security measures.
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Heart className="h-8 w-8 text-orange-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Community First</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Community First
+              </h3>
               <p className="text-gray-600">
-                Built for writers and readers, with features that foster genuine connections.
+                Built for writers and readers, with features that foster genuine
+                connections.
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <BookOpen className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Quality Content</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Quality Content
+              </h3>
               <p className="text-gray-600">
-                Curated articles and stories that inform, entertain, and inspire.
+                Curated articles and stories that inform, entertain, and
+                inspire.
               </p>
             </div>
           </div>
@@ -107,10 +125,13 @@ export default function About() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Join Our Community</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">
+            Join Our Community
+          </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Start sharing your stories, connect with like-minded individuals, and be part of 
-            a platform that values quality content and meaningful interactions.
+            Start sharing your stories, connect with like-minded individuals,
+            and be part of a platform that values quality content and meaningful
+            interactions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/register">

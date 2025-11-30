@@ -3,11 +3,11 @@ import { api } from "@/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { 
-  Calendar, 
-  User, 
-  ArrowLeft, 
-  Share2, 
+import {
+  Calendar,
+  User,
+  ArrowLeft,
+  Share2,
   Eye,
   Tag,
   Facebook,
@@ -15,7 +15,7 @@ import {
   Linkedin,
   Link,
   Heart,
-  ThumbsUp
+  ThumbsUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,11 +36,13 @@ function BlogDetails() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  
+
   // Use localStorage to persist like state
   const [hasLiked, setHasLiked] = useState(() => {
     if (!user || !id) return false;
-    const likedBlogs = JSON.parse(localStorage.getItem(`likedBlogs_${user.id}`) || '{}');
+    const likedBlogs = JSON.parse(
+      localStorage.getItem(`likedBlogs_${user.id}`) || "{}",
+    );
     return likedBlogs[id] || false;
   });
 
@@ -69,7 +71,9 @@ function BlogDetails() {
   // Update localStorage when like state changes
   useEffect(() => {
     if (user && id) {
-      const likedBlogs = JSON.parse(localStorage.getItem(`likedBlogs_${user.id}`) || '{}');
+      const likedBlogs = JSON.parse(
+        localStorage.getItem(`likedBlogs_${user.id}`) || "{}",
+      );
       if (hasLiked) {
         likedBlogs[id] = true;
       } else {
@@ -84,10 +88,10 @@ function BlogDetails() {
     mutationFn: async () => {
       if (hasLiked) {
         const res = await api.post(`/blogs/${id}/unlike`);
-        return { ...res.data, action: 'unlike' };
+        return { ...res.data, action: "unlike" };
       } else {
         const res = await api.post(`/blogs/${id}/like`);
-        return { ...res.data, action: 'like' };
+        return { ...res.data, action: "like" };
       }
     },
     onMutate: async () => {
@@ -97,7 +101,7 @@ function BlogDetails() {
       // Optimistically update the like count
       queryClient.setQueryData(["blog", id], (old: any) => ({
         ...old,
-        likesCount: hasLiked ? (old.likesCount - 1) : (old.likesCount + 1)
+        likesCount: hasLiked ? old.likesCount - 1 : old.likesCount + 1,
       }));
 
       // Also update user-blogs query for profile stats
@@ -109,11 +113,11 @@ function BlogDetails() {
       // Update with actual server response
       queryClient.setQueryData(["blog", id], (old: any) => ({
         ...old,
-        likesCount: data.likesCount
+        likesCount: data.likesCount,
       }));
-      
-      setHasLiked(data.action === 'like');
-      toast.success(data.action === 'like' ? "Blog liked!" : "Blog unliked!");
+
+      setHasLiked(data.action === "like");
+      toast.success(data.action === "like" ? "Blog liked!" : "Blog unliked!");
     },
     onError: (err, variables, context) => {
       // Rollback on error
@@ -140,46 +144,55 @@ function BlogDetails() {
   // Function to extract first and last name from user data
   const getAuthorName = (user: any) => {
     if (!user) return "Unknown Author";
-    
+
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
-    
+
     if (user.firstName) {
       return user.firstName;
     }
-    
+
     if (user.lastName) {
       return user.lastName;
     }
-    
+
     if (user.userName) {
       return user.userName;
     }
-    
+
     if (user.emailAdress) {
-      const emailName = user.emailAdress.split('@')[0];
+      const emailName = user.emailAdress.split("@")[0];
       return emailName.charAt(0).toUpperCase() + emailName.slice(1);
     }
-    
+
     return "Unknown Author";
   };
 
   const handleShare = async (platform?: string) => {
     const shareUrl = window.location.href;
-    const title = data?.title || 'Check out this blog post';
+    const title = data?.title || "Check out this blog post";
 
     switch (platform) {
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+      case "twitter":
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`,
+          "_blank",
+        );
         break;
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+      case "facebook":
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+          "_blank",
+        );
         break;
-      case 'linkedin':
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
+      case "linkedin":
+        window.open(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+          "_blank",
+        );
         break;
-      case 'copy':
+      case "copy":
         navigator.clipboard.writeText(shareUrl);
         toast.success("Link copied to clipboard!");
         break;
@@ -188,11 +201,11 @@ function BlogDetails() {
           try {
             await navigator.share({
               title: title,
-              text: data?.synopsis || '',
+              text: data?.synopsis || "",
               url: shareUrl,
             });
           } catch (err) {
-            console.log('Error sharing:', err);
+            console.log("Error sharing:", err);
           }
         } else {
           navigator.clipboard.writeText(shareUrl);
@@ -208,11 +221,17 @@ function BlogDetails() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-24 flex items-center justify-center px-6">
         <div className="text-center max-w-md">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Blog Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Blog Not Found
+          </h2>
           <p className="text-gray-600 mb-6">
-            {(error as any)?.response?.data?.message || "The blog you're looking for doesn't exist or has been removed."}
+            {(error as any)?.response?.data?.message ||
+              "The blog you're looking for doesn't exist or has been removed."}
           </p>
-          <Button onClick={() => navigate('/blogs')} className="bg-green-600 hover:bg-green-700">
+          <Button
+            onClick={() => navigate("/blogs")}
+            className="bg-green-600 hover:bg-green-700"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Blogs
           </Button>
@@ -248,8 +267,8 @@ function BlogDetails() {
                   <div className="lg:pr-12">
                     {/* Category Badge */}
                     {data.category && (
-                      <Badge 
-                        variant="secondary" 
+                      <Badge
+                        variant="secondary"
                         className="mb-6 bg-green-100 text-green-800 hover:bg-green-200 text-sm font-medium"
                       >
                         <Tag className="h-3 w-3 mr-1" />
@@ -273,15 +292,22 @@ function BlogDetails() {
                     <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-8 text-gray-500">
                       <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
                         <User className="h-4 w-4" />
-                        <span className="font-medium">{getAuthorName(data.user)}</span>
+                        <span className="font-medium">
+                          {getAuthorName(data.user)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
                         <Calendar className="h-4 w-4" />
-                        <span className="font-medium">{new Date(data.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}</span>
+                        <span className="font-medium">
+                          {new Date(data.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            },
+                          )}
+                        </span>
                       </div>
                     </div>
 
@@ -294,13 +320,13 @@ function BlogDetails() {
                         onClick={handleToggleLike}
                         disabled={toggleLikeMutation.isPending || !user}
                         className={`flex items-center gap-2 ${
-                          hasLiked 
-                            ? "bg-green-600 hover:bg-green-700 text-white" 
+                          hasLiked
+                            ? "bg-green-600 hover:bg-green-700 text-white"
                             : "hover:bg-green-50"
                         }`}
                       >
                         <ThumbsUp className="h-4 w-4" />
-                        {hasLiked ? 'Liked' : 'Like'} ({data.likesCount || 0})
+                        {hasLiked ? "Liked" : "Like"} ({data.likesCount || 0})
                       </Button>
 
                       <DropdownMenu>
@@ -315,19 +341,25 @@ function BlogDetails() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">
-                          <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                          <DropdownMenuItem
+                            onClick={() => handleShare("twitter")}
+                          >
                             <Twitter className="h-4 w-4 mr-2" />
                             Share on Twitter
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                          <DropdownMenuItem
+                            onClick={() => handleShare("facebook")}
+                          >
                             <Facebook className="h-4 w-4 mr-2" />
                             Share on Facebook
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+                          <DropdownMenuItem
+                            onClick={() => handleShare("linkedin")}
+                          >
                             <Linkedin className="h-4 w-4 mr-2" />
                             Share on LinkedIn
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleShare('copy')}>
+                          <DropdownMenuItem onClick={() => handleShare("copy")}>
                             <Link className="h-4 w-4 mr-2" />
                             Copy Link
                           </DropdownMenuItem>
@@ -338,25 +370,81 @@ function BlogDetails() {
 
                   {/* Blog Content with Markdown - Continues below image */}
                   <div className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:text-lg">
-                    <ReactMarkdown 
+                    <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        h1: ({node, ...props}) => <h1 className="text-3xl font-bold text-gray-900 mt-10 mb-6 pb-2 border-b border-gray-200" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-5" {...props} />,
-                        h3: ({node, ...props}) => <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4" {...props} />,
-                        p: ({node, ...props}) => <p className="text-gray-700 leading-relaxed mb-6 text-lg" {...props} />,
-                        ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-3 mb-6 text-gray-700 text-lg" {...props} />,
-                        ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-3 mb-6 text-gray-700 text-lg" {...props} />,
-                        li: ({node, ...props}) => <li className="text-gray-700 leading-relaxed mb-1" {...props} />,
-                        blockquote: ({node, ...props}) => (
-                          <blockquote className="border-l-4 border-green-500 pl-6 italic text-gray-600 my-8 text-lg bg-gray-50 py-4 rounded-r-lg" {...props} />
+                        h1: ({ node, ...props }) => (
+                          <h1
+                            className="text-3xl font-bold text-gray-900 mt-10 mb-6 pb-2 border-b border-gray-200"
+                            {...props}
+                          />
                         ),
-                        code: ({node, inline, ...props}) => 
-                          inline ? 
-                            <code className="bg-gray-100 rounded px-2 py-1 text-sm font-mono text-gray-800 border" {...props} /> :
-                            <code className="block bg-gray-900 text-gray-100 rounded-lg p-5 my-6 overflow-x-auto text-sm font-mono border-l-4 border-green-500" {...props} />,
-                        a: ({node, ...props}) => <a className="text-green-600 hover:text-green-700 underline font-medium" {...props} />,
-                        img: ({node, ...props}) => <img className="rounded-xl shadow-md my-8 mx-auto max-w-full h-auto" {...props} />,
+                        h2: ({ node, ...props }) => (
+                          <h2
+                            className="text-2xl font-bold text-gray-900 mt-10 mb-5"
+                            {...props}
+                          />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h3
+                            className="text-xl font-bold text-gray-900 mt-8 mb-4"
+                            {...props}
+                          />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p
+                            className="text-gray-700 leading-relaxed mb-6 text-lg"
+                            {...props}
+                          />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul
+                            className="list-disc list-inside space-y-3 mb-6 text-gray-700 text-lg"
+                            {...props}
+                          />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            className="list-decimal list-inside space-y-3 mb-6 text-gray-700 text-lg"
+                            {...props}
+                          />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li
+                            className="text-gray-700 leading-relaxed mb-1"
+                            {...props}
+                          />
+                        ),
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote
+                            className="border-l-4 border-green-500 pl-6 italic text-gray-600 my-8 text-lg bg-gray-50 py-4 rounded-r-lg"
+                            {...props}
+                          />
+                        ),
+                        code: ({ node, inline, ...props }) =>
+                          inline ? (
+                            <code
+                              className="bg-gray-100 rounded px-2 py-1 text-sm font-mono text-gray-800 border"
+                              {...props}
+                            />
+                          ) : (
+                            <code
+                              className="block bg-gray-900 text-gray-100 rounded-lg p-5 my-6 overflow-x-auto text-sm font-mono border-l-4 border-green-500"
+                              {...props}
+                            />
+                          ),
+                        a: ({ node, ...props }) => (
+                          <a
+                            className="text-green-600 hover:text-green-700 underline font-medium"
+                            {...props}
+                          />
+                        ),
+                        img: ({ node, ...props }) => (
+                          <img
+                            className="rounded-xl shadow-md my-8 mx-auto max-w-full h-auto"
+                            {...props}
+                          />
+                        ),
                       }}
                     >
                       {data.content}
@@ -390,13 +478,19 @@ function BlogDetails() {
                   <div className="space-y-4 text-sm">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Views:</span>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      <Badge
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-800"
+                      >
                         {data.viewCount || 0}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Likes:</span>
-                      <Badge variant="secondary" className="bg-red-100 text-red-800">
+                      <Badge
+                        variant="secondary"
+                        className="bg-red-100 text-red-800"
+                      >
                         <Heart className="h-3 w-3 mr-1" />
                         {data.likesCount || 0}
                       </Badge>
@@ -404,8 +498,13 @@ function BlogDetails() {
                     {user && (
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Your action:</span>
-                        <Badge variant={hasLiked ? "default" : "secondary"} className={hasLiked ? "bg-green-100 text-green-800" : ""}>
-                          {hasLiked ? 'Liked' : 'Not liked'}
+                        <Badge
+                          variant={hasLiked ? "default" : "secondary"}
+                          className={
+                            hasLiked ? "bg-green-100 text-green-800" : ""
+                          }
+                        >
+                          {hasLiked ? "Liked" : "Not liked"}
                         </Badge>
                       </div>
                     )}
@@ -421,16 +520,22 @@ function BlogDetails() {
                   <div className="space-y-3 text-sm text-gray-600">
                     <div className="flex justify-between">
                       <span>Published:</span>
-                      <span className="font-medium">{new Date(data.createdAt).toLocaleDateString()}</span>
+                      <span className="font-medium">
+                        {new Date(data.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Author:</span>
-                      <span className="font-medium">{getAuthorName(data.user)}</span>
+                      <span className="font-medium">
+                        {getAuthorName(data.user)}
+                      </span>
                     </div>
                     {data.category && (
                       <div className="flex justify-between">
                         <span>Category:</span>
-                        <span className="font-medium">{data.category.name}</span>
+                        <span className="font-medium">
+                          {data.category.name}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -446,7 +551,7 @@ function BlogDetails() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleShare('twitter')}
+                      onClick={() => handleShare("twitter")}
                       className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
                     >
                       <Twitter className="h-4 w-4" />
@@ -455,7 +560,7 @@ function BlogDetails() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleShare('facebook')}
+                      onClick={() => handleShare("facebook")}
                       className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
                     >
                       <Facebook className="h-4 w-4" />
@@ -464,7 +569,7 @@ function BlogDetails() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleShare('linkedin')}
+                      onClick={() => handleShare("linkedin")}
                       className="flex items-center gap-2 justify-start bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
                     >
                       <Linkedin className="h-4 w-4" />
@@ -473,7 +578,7 @@ function BlogDetails() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleShare('copy')}
+                      onClick={() => handleShare("copy")}
                       className="flex items-center gap-2 justify-start"
                     >
                       <Link className="h-4 w-4" />
@@ -489,12 +594,15 @@ function BlogDetails() {
                   <div className="flex items-center gap-4 text-gray-500">
                     <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
                       <Eye className="h-4 w-4" />
-                      <span className="text-sm font-medium">Published on {new Date(data.createdAt).toLocaleDateString()}</span>
+                      <span className="text-sm font-medium">
+                        Published on{" "}
+                        {new Date(data.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => navigate('/blogs')}
+                    onClick={() => navigate("/blogs")}
                     className="flex items-center gap-2"
                   >
                     <ArrowLeft className="h-4 w-4" />
@@ -525,18 +633,18 @@ function BlogDetailsSkeleton() {
                 <Skeleton className="h-12 w-1/2" />
                 <Skeleton className="h-6 w-full" />
                 <Skeleton className="h-6 w-2/3" />
-                
+
                 <div className="flex flex-wrap gap-4">
                   <Skeleton className="h-10 w-32 rounded-lg" />
                   <Skeleton className="h-10 w-40 rounded-lg" />
                 </div>
-                
+
                 <div className="flex gap-3">
                   <Skeleton className="h-9 w-20 rounded-md" />
                   <Skeleton className="h-9 w-20 rounded-md" />
                   <Skeleton className="h-9 w-20 rounded-md" />
                 </div>
-                
+
                 <div className="space-y-4">
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />

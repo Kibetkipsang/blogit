@@ -2,11 +2,35 @@ import { useState, useEffect } from "react";
 import useAuthStore from "@/stores/useStore";
 import { api } from "../../axios";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "../ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import { toast } from "sonner";
-import { Eye, Calendar, FileText, Trash2, RotateCcw, Loader2, ArrowLeft } from "lucide-react";
+import {
+  Eye,
+  Calendar,
+  FileText,
+  Trash2,
+  RotateCcw,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type Blog = {
@@ -44,14 +68,17 @@ function Trash() {
   const fetchTrashedBlogs = async () => {
     setLoading(true);
     setError("");
-    
+
     try {
       const response = await api.get("/profile/trash");
       console.log("🔍 Full Trash API response:", response.data);
-    console.log("📊 Response structure:", typeof response.data);
-    console.log("📝 First blog data:", response.data.blogs?.[0] || response.data?.[0]);
-      console.log("Trash API response:", response.data); 
-      
+      console.log("📊 Response structure:", typeof response.data);
+      console.log(
+        "📝 First blog data:",
+        response.data.blogs?.[0] || response.data?.[0],
+      );
+      console.log("Trash API response:", response.data);
+
       if (response.data.success && Array.isArray(response.data.blogs)) {
         setTrashedBlogs(response.data.blogs);
       } else if (Array.isArray(response.data)) {
@@ -60,7 +87,8 @@ function Trash() {
         setTrashedBlogs([]);
       }
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.message || "Failed to fetch trashed blogs";
+      const errorMessage =
+        err?.response?.data?.message || "Failed to fetch trashed blogs";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -79,9 +107,11 @@ function Trash() {
       console.log("Restoring blog with ID:", selectedBlog.id); // Debug log
       const response = await api.patch(`/blogs/restore/${selectedBlog.id}`);
       console.log("Restore response:", response.data); // Debug log
-      
+
       if (response.data.success) {
-        setTrashedBlogs(prev => prev.filter(blog => blog.id !== selectedBlog.id));
+        setTrashedBlogs((prev) =>
+          prev.filter((blog) => blog.id !== selectedBlog.id),
+        );
         toast.success("Blog restored successfully!");
         setRestoreDialogOpen(false);
         setSelectedBlog(null);
@@ -107,9 +137,11 @@ function Trash() {
       console.log("Deleting blog with ID:", selectedBlog.id); // Debug log
       const response = await api.delete(`/blogs/${selectedBlog.id}`);
       console.log("Delete response:", response.data); // Debug log
-      
+
       if (response.data.success) {
-        setTrashedBlogs(prev => prev.filter(blog => blog.id !== selectedBlog.id));
+        setTrashedBlogs((prev) =>
+          prev.filter((blog) => blog.id !== selectedBlog.id),
+        );
         toast.success("Blog permanently deleted!");
         setDeleteDialogOpen(false);
         setSelectedBlog(null);
@@ -137,10 +169,10 @@ function Trash() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -163,9 +195,9 @@ function Trash() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/profile')}
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/profile")}
               className="mb-4 flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -176,11 +208,14 @@ function Trash() {
               Trash
             </h1>
             <p className="text-xl text-gray-600">
-              Manage your deleted blog posts. Restore or permanently delete them.
+              Manage your deleted blog posts. Restore or permanently delete
+              them.
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-red-600">{trashedBlogs.length}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {trashedBlogs.length}
+            </div>
             <div className="text-sm text-gray-500">Items in trash</div>
           </div>
         </div>
@@ -195,27 +230,36 @@ function Trash() {
             ) : error ? (
               <div className="text-center py-12">
                 <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to load trashed blogs</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Failed to load trashed blogs
+                </h3>
                 <p className="text-gray-600 mb-4">{error}</p>
                 <Button onClick={fetchTrashedBlogs}>Try Again</Button>
               </div>
             ) : trashedBlogs.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-gray-400 text-6xl mb-4">🗑️</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Trash is empty</h3>
-                <p className="text-gray-600 mb-6">No blogs have been moved to trash yet.</p>
-                <Button onClick={() => navigate('/profile')}>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Trash is empty
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  No blogs have been moved to trash yet.
+                </p>
+                <Button onClick={() => navigate("/profile")}>
                   Back to Profile
                 </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {trashedBlogs.map((blog) => (
-                  <Card key={blog.id} className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-red-50 border-l-4 border-l-red-300">
+                  <Card
+                    key={blog.id}
+                    className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-red-50 border-l-4 border-l-red-300"
+                  >
                     {blog.featuredImageUrl && (
                       <div className="h-48 overflow-hidden rounded-t-lg">
-                        <img 
-                          src={blog.featuredImageUrl} 
+                        <img
+                          src={blog.featuredImageUrl}
                           alt={blog.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-70"
                         />
@@ -224,11 +268,17 @@ function Trash() {
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
                         {blog.category && (
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                          <Badge
+                            variant="secondary"
+                            className="bg-gray-100 text-gray-800"
+                          >
                             {blog.category.name}
                           </Badge>
                         )}
-                        <Badge variant="destructive" className="bg-red-100 text-red-800">
+                        <Badge
+                          variant="destructive"
+                          className="bg-red-100 text-red-800"
+                        >
                           Trashed
                         </Badge>
                       </div>
@@ -246,9 +296,9 @@ function Trash() {
                       </div>
                     </CardContent>
                     <CardFooter className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                         onClick={() => openRestoreDialog(blog)}
                         disabled={!blog.id} // Disable if no ID
@@ -256,9 +306,9 @@ function Trash() {
                         <RotateCcw className="h-3 w-3 mr-1" />
                         Restore
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                         onClick={() => openDeleteDialog(blog)}
                         disabled={!blog.id} // Disable if no ID
@@ -275,17 +325,22 @@ function Trash() {
         </Card>
 
         {/* Restore Confirmation Dialog */}
-        <AlertDialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+        <AlertDialog
+          open={restoreDialogOpen}
+          onOpenChange={setRestoreDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Restore Blog</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to restore "{selectedBlog?.title}"? 
-                It will be moved back to your active blogs.
+                Are you sure you want to restore "{selectedBlog?.title}"? It
+                will be moved back to your active blogs.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={isProcessing}>
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleRestore}
                 disabled={isProcessing || !selectedBlog?.id}
@@ -313,12 +368,15 @@ function Trash() {
             <AlertDialogHeader>
               <AlertDialogTitle>Permanently Delete</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to permanently delete "{selectedBlog?.title}"? 
-                This action cannot be undone and the blog will be lost forever.
+                Are you sure you want to permanently delete "
+                {selectedBlog?.title}"? This action cannot be undone and the
+                blog will be lost forever.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={isProcessing}>
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handlePermanentDelete}
                 disabled={isProcessing || !selectedBlog?.id}

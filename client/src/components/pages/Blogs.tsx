@@ -1,19 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
-import React from 'react';
+import React from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "@/axios";
 import BlogCard from "./BlogCard";
-import { Search, Grid3X3, List, Home, User, FileText, Menu, X, LogOut, LogIn, UserPlus } from "lucide-react";
+import {
+  Search,
+  Grid3X3,
+  List,
+  Home,
+  User,
+  FileText,
+  Menu,
+  X,
+  LogOut,
+  LogIn,
+  UserPlus,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type BlogType = {
   id: string;
@@ -23,8 +31,8 @@ type BlogType = {
   content: string;
   createdAt: string;
   category?: {
-    id: string,
-    name: string
+    id: string;
+    name: string;
   };
   user?: {
     id: string;
@@ -45,43 +53,44 @@ type CategoryType = {
 // Function to extract author name from user data
 const getAuthorName = (blog: BlogType): string => {
   if (!blog) return "Unknown Author";
-  
+
   // Check if user object exists with name fields
   if (blog.user) {
     const user = blog.user;
-    if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
+    if (user.firstName && user.lastName)
+      return `${user.firstName} ${user.lastName}`;
     if (user.firstName) return user.firstName;
     if (user.lastName) return user.lastName;
     if (user.userName) return user.userName;
     if (user.emailAdress) {
-      const emailName = user.emailAdress.split('@')[0];
+      const emailName = user.emailAdress.split("@")[0];
       return emailName.charAt(0).toUpperCase() + emailName.slice(1);
     }
   }
-  
+
   // Fallback to old authorName field
   if (blog.authorName) return blog.authorName;
-  
+
   return "Unknown Author";
 };
 
 // Enhanced fetchBlogs with markdown content handling
 const fetchBlogs = async (): Promise<BlogType[]> => {
   const res = await api.get("/blogs");
-  
+
   if (res.data && Array.isArray(res.data.blogs)) {
     return res.data.blogs.map((blog: BlogType) => ({
       ...blog,
       content: blog.content || "",
       synopsis: blog.synopsis || extractSynopsisFromMarkdown(blog.content),
-      readTime: calculateReadTime(blog.content)
+      readTime: calculateReadTime(blog.content),
     }));
   } else if (Array.isArray(res.data)) {
     return res.data.map((blog: BlogType) => ({
       ...blog,
       content: blog.content || "",
       synopsis: blog.synopsis || extractSynopsisFromMarkdown(blog.content),
-      readTime: calculateReadTime(blog.content)
+      readTime: calculateReadTime(blog.content),
     }));
   } else {
     console.error("Unexpected API response:", res.data);
@@ -91,31 +100,32 @@ const fetchBlogs = async (): Promise<BlogType[]> => {
 
 const extractSynopsisFromMarkdown = (content: string): string => {
   if (!content) return "No description available";
-  
-  const plainText = content
-    .replace(/#{1,6}\s/g, '')
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-    .replace(/`(.*?)`/g, '$1')
-    .split('\n')
-    .filter(line => line.trim().length > 0)[0] || '';
-  
-  return plainText.slice(0, 150) + (plainText.length > 150 ? '...' : '');
+
+  const plainText =
+    content
+      .replace(/#{1,6}\s/g, "")
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .replace(/`(.*?)`/g, "$1")
+      .split("\n")
+      .filter((line) => line.trim().length > 0)[0] || "";
+
+  return plainText.slice(0, 150) + (plainText.length > 150 ? "..." : "");
 };
 
 const calculateReadTime = (content: string): string => {
-  if (!content) return '1 min read';
-  
+  if (!content) return "1 min read";
+
   const wordsPerMinute = 200;
   const plainText = content
-    .replace(/#{1,6}\s/g, '')
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-    .replace(/`(.*?)`/g, '$1')
-    .replace(/[^\w\s]/g, ' ');
-  
+    .replace(/#{1,6}\s/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+    .replace(/`(.*?)`/g, "$1")
+    .replace(/[^\w\s]/g, " ");
+
   const words = plainText.split(/\s+/).length;
   const minutes = Math.ceil(words / wordsPerMinute);
   return `${minutes} min read`;
@@ -130,18 +140,18 @@ const fetchCategories = async () => {
 const useAuth = () => {
   // This is a placeholder - replace with your actual authentication logic
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+
   // Check if user is logged in (you might check localStorage, cookies, or context)
   React.useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     setIsAuthenticated(!!token);
   }, []);
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem("authToken");
     setIsAuthenticated(false);
     // You might want to redirect to home page or login page
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   return { isAuthenticated, logout };
@@ -152,23 +162,20 @@ function Blogs() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("masonry");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const { isAuthenticated, logout } = useAuth();
 
-  const { 
-    data: blogsData, 
-    isPending: blogsLoading, 
-    isError: blogsError, 
-    error: blogsErr 
+  const {
+    data: blogsData,
+    isPending: blogsLoading,
+    isError: blogsError,
+    error: blogsErr,
   } = useQuery<BlogType[]>({
     queryKey: ["blogs"],
     queryFn: fetchBlogs,
   });
 
-  const { 
-    data: categoriesData, 
-    isLoading: categoriesLoading 
-  } = useQuery({
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
   });
@@ -177,17 +184,22 @@ function Blogs() {
   const blogs: BlogType[] = blogsData || [];
 
   const filteredBlogs = blogs
-    .filter(blog => {
-      const matchesCategory = selectedCategory === "All" || 
+    .filter((blog) => {
+      const matchesCategory =
+        selectedCategory === "All" ||
         blog.category?.name.toLowerCase() === selectedCategory.toLowerCase();
-      
-      const matchesSearch = searchQuery === "" || 
+
+      const matchesSearch =
+        searchQuery === "" ||
         blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         blog.synopsis.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       return matchesCategory && matchesSearch;
     })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
 
   if (blogsLoading || categoriesLoading) {
     return <BlogsSkeleton />;
@@ -198,12 +210,15 @@ function Blogs() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 sm:px-6">
         <div className="text-center max-w-md w-full">
           <div className="text-red-500 text-5xl sm:text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Failed to Load Blogs</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+            Failed to Load Blogs
+          </h2>
           <p className="text-gray-600 mb-6 text-sm sm:text-base">
-            {(blogsErr as any)?.response?.data?.message || "Unable to load blogs at this time."}
+            {(blogsErr as any)?.response?.data?.message ||
+              "Unable to load blogs at this time."}
           </p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
           >
             Try Again
@@ -229,37 +244,41 @@ function Blogs() {
             <div className="flex items-center gap-2 sm:gap-3">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="sm:hidden h-8 w-8 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="sm:hidden h-8 w-8 p-0"
+                  >
                     <Menu className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-64">
                   <div className="flex flex-col gap-4 mt-8">
-                    <Link 
-                      to="/" 
+                    <Link
+                      to="/"
                       className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors p-3 rounded-lg hover:bg-gray-100"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <Home className="h-5 w-5" />
                       <span className="font-medium">Home</span>
                     </Link>
-                    <Link 
-                      to="/profile" 
+                    <Link
+                      to="/profile"
                       className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors p-3 rounded-lg hover:bg-gray-100"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
                       <span className="font-medium">Profile</span>
                     </Link>
-                    <Link 
-                      to="/create-blog" 
+                    <Link
+                      to="/create-blog"
                       className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors p-3 rounded-lg hover:bg-gray-100"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <FileText className="h-5 w-5" />
                       <span className="font-medium">Create Blog</span>
                     </Link>
-                    
+
                     {/* Mobile Auth Buttons */}
                     {isAuthenticated ? (
                       <Button
@@ -272,16 +291,16 @@ function Blogs() {
                       </Button>
                     ) : (
                       <div className="flex flex-col gap-2 mt-4">
-                        <Link 
-                          to="/login" 
+                        <Link
+                          to="/login"
                           className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors p-3 rounded-lg hover:bg-gray-100"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           <LogIn className="h-5 w-5" />
                           <span className="font-medium">Login</span>
                         </Link>
-                        <Link 
-                          to="/register" 
+                        <Link
+                          to="/register"
                           className="flex items-center gap-3 text-green-600 hover:text-green-700 transition-colors p-3 rounded-lg hover:bg-green-50 border border-green-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
@@ -296,22 +315,22 @@ function Blogs() {
 
               {/* Desktop Navigation Links */}
               <div className="hidden sm:flex items-center gap-2 lg:gap-3">
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition-colors px-2 lg:px-3 py-1 rounded-lg hover:bg-gray-100 text-sm"
                 >
                   <Home className="h-4 w-4" />
                   <span className="font-medium">Home</span>
                 </Link>
-                <Link 
-                  to="/profile" 
+                <Link
+                  to="/profile"
                   className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition-colors px-2 lg:px-3 py-1 rounded-lg hover:bg-gray-100 text-sm"
                 >
                   <User className="h-4 w-4" />
                   <span className="font-medium">Profile</span>
                 </Link>
-                <Link 
-                  to="/create-blog" 
+                <Link
+                  to="/create-blog"
                   className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition-colors px-2 lg:px-3 py-1 rounded-lg hover:bg-gray-100 text-sm"
                 >
                   <FileText className="h-4 w-4" />
@@ -397,8 +416,8 @@ function Blogs() {
             <Badge
               variant={selectedCategory === "All" ? "default" : "outline"}
               className={`cursor-pointer px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium transition-colors ${
-                selectedCategory === "All" 
-                  ? "bg-green-600 text-white hover:bg-green-700" 
+                selectedCategory === "All"
+                  ? "bg-green-600 text-white hover:bg-green-700"
                   : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
               onClick={() => setSelectedCategory("All")}
@@ -408,16 +427,20 @@ function Blogs() {
                 {blogs.length}
               </span>
             </Badge>
-            
+
             {categories.map((cat) => {
-              const count = blogs.filter(b => b.category?.name === cat.name).length;
+              const count = blogs.filter(
+                (b) => b.category?.name === cat.name,
+              ).length;
               return (
                 <Badge
                   key={cat.id}
-                  variant={selectedCategory === cat.name ? "default" : "outline"}
+                  variant={
+                    selectedCategory === cat.name ? "default" : "outline"
+                  }
                   className={`cursor-pointer px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium transition-colors ${
-                    selectedCategory === cat.name 
-                      ? "bg-green-600 text-white hover:bg-green-700" 
+                    selectedCategory === cat.name
+                      ? "bg-green-600 text-white hover:bg-green-700"
                       : "bg-white text-gray-700 hover:bg-gray-50"
                   }`}
                   onClick={() => setSelectedCategory(cat.name)}
@@ -439,7 +462,8 @@ function Blogs() {
         {filteredBlogs.length > 0 && (
           <div className="mb-3 sm:mb-4">
             <p className="text-xs sm:text-sm text-gray-600">
-              Showing {filteredBlogs.length} of {blogs.length} blog{blogs.length !== 1 ? 's' : ''}
+              Showing {filteredBlogs.length} of {blogs.length} blog
+              {blogs.length !== 1 ? "s" : ""}
               {searchQuery && ` for "${searchQuery}"`}
               {selectedCategory !== "All" && ` in ${selectedCategory}`}
             </p>
@@ -448,10 +472,16 @@ function Blogs() {
 
         {filteredBlogs.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
-            <div className="text-gray-400 text-4xl sm:text-5xl mb-2 sm:mb-3">📝</div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">No blogs found</h3>
+            <div className="text-gray-400 text-4xl sm:text-5xl mb-2 sm:mb-3">
+              📝
+            </div>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
+              No blogs found
+            </h3>
             <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 max-w-sm mx-auto">
-              {searchQuery ? `No results for "${searchQuery}"` : "No blogs available in this category"}
+              {searchQuery
+                ? `No results for "${searchQuery}"`
+                : "No blogs available in this category"}
             </p>
             {(searchQuery || selectedCategory !== "All") && (
               <Button
@@ -468,11 +498,13 @@ function Blogs() {
             )}
           </div>
         ) : (
-          <div className={
-            viewMode === "masonry" 
-              ? "columns-1 sm:columns-2 lg:columns-3 gap-3 sm:gap-4 lg:gap-5 space-y-3 sm:space-y-4 lg:space-y-5"
-              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
-          }>
+          <div
+            className={
+              viewMode === "masonry"
+                ? "columns-1 sm:columns-2 lg:columns-3 gap-3 sm:gap-4 lg:gap-5 space-y-3 sm:space-y-4 lg:space-y-5"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
+            }
+          >
             {filteredBlogs.map((blog) => (
               <div key={blog.id} className="break-inside-avoid">
                 <BlogCard
@@ -515,7 +547,10 @@ function BlogsSkeleton() {
           </div>
           <div className="flex flex-wrap gap-1 sm:gap-1.5 pb-2 sm:pb-3">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-5 sm:h-6 w-12 sm:w-16 rounded-full" />
+              <Skeleton
+                key={i}
+                className="h-5 sm:h-6 w-12 sm:w-16 rounded-full"
+              />
             ))}
           </div>
         </div>

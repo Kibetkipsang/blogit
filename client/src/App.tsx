@@ -19,16 +19,18 @@ import BlogArticleHeader from "./components/pages/BlogsHeader";
 import ProfileLayout from "./components/profile/ProfileLayout";
 import ProfileHeader from "./components/profile/ProfileHeader";
 import Trash from "./components/profile/UserTrash";
-import About from "./components/about"
-import TermsOfService from "./components/terms"
-import PrivacyPolicy from "./components/PrivacyPolicy"
-import HelpCenter from "./components/Contacts"
+import About from "./components/about";
+import TermsOfService from "./components/terms";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import HelpCenter from "./components/Contacts";
+import AdminUsers from "./components/pages/admin/ManageUsers";
+import AdminBlogs from "./components/pages/admin/ManageBlogs";
 
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isBlogDetails = /^\/blogs\/[^/]+$/.test(location.pathname); 
-  const isProfile = location.pathname.startsWith("/profile"); 
+  const isBlogDetails = /^\/blogs\/[^/]+$/.test(location.pathname);
+  const isProfile = location.pathname.startsWith("/profile");
   const isBlogsPage = location.pathname === "/blogs";
 
   return (
@@ -36,12 +38,10 @@ function App() {
       <div>
         {isBlogDetails ? (
           <BlogArticleHeader />
-        ) : isProfile ? null  
-        : isBlogsPage ? null 
-        : !isAdminRoute ? (
+        ) : isProfile ? null : isBlogsPage ? null : !isAdminRoute ? (
           <Header />
         ) : null}
-  
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
@@ -61,8 +61,19 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Admin />} />
             <Route path="createCategories" element={<CreateCategories />} />
+            <Route path="manageUsers" element={<AdminUsers />} />
+            <Route path="manageBlogs" element={<AdminBlogs />} />
             <Route path="adminCategories" element={<AdminCategories />} />
-            <Route path="editCategory" element={<EditCategoryModal category={{ id: "", name: '' }} open={false} onClose={() => {}}/>} />
+            <Route
+              path="editCategory"
+              element={
+                <EditCategoryModal
+                  category={{ id: "", name: "" }}
+                  open={false}
+                  onClose={() => {}}
+                />
+              }
+            />
           </Route>
         </Routes>
         <Footer />

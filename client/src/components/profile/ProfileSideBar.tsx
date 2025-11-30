@@ -14,20 +14,27 @@ function ProfileSidebar({ onEditProfile, onChangePassword }: Props) {
 
   const handleLogout = () => {
     logout();
-    navigate("/blogs"); 
+    navigate("/blogs");
   };
 
   const menuItems = [
     { name: "Dashboard", path: "/profile", icon: Home },
     { name: "Edit Profile", action: onEditProfile, icon: User, color: "green" },
-    { name: "Change Password", action: onChangePassword, icon: Key, color: "green" },
+    {
+      name: "Change Password",
+      action: onChangePassword,
+      icon: Key,
+      color: "green",
+    },
     { name: "Logout", action: handleLogout, icon: LogOut, color: "red" },
   ];
 
   return (
     <aside className="w-64 bg-black text-white h-screen flex-col sticky top-0">
       <div className="px-6 py-6 text-center border-b border-green-900">
-        <h1 className="text-xl font-bold text-green-500 uppercase">My Profile</h1>
+        <h1 className="text-xl font-bold text-green-500 uppercase">
+          My Profile
+        </h1>
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-2">
@@ -60,7 +67,7 @@ function ProfileSidebar({ onEditProfile, onChangePassword }: Props) {
               <item.icon className="w-5 h-5" />
               {item.name}
             </button>
-          )
+          ),
         )}
       </nav>
 

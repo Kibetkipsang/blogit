@@ -1,14 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "@/stores/useStore";
-import {useState, useEffect} from 'react';
+import { useState, useEffect } from "react";
 import { api } from "../../axios";
 import { capitalize } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "../ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import { toast } from "sonner";
-import { Edit, Trash2, Eye, Calendar, User, Mail, FileText, Plus, Loader2, BarChart3, Heart, TrendingUp, RefreshCw } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  User,
+  Mail,
+  FileText,
+  Plus,
+  Loader2,
+  BarChart3,
+  Heart,
+  TrendingUp,
+  RefreshCw,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type Blog = {
@@ -42,12 +72,12 @@ function Profile() {
     isLoading: blogsLoading,
     isError: blogsError,
     error: blogsErrorData,
-    refetch: refetchBlogs
+    refetch: refetchBlogs,
   } = useQuery({
     queryKey: ["user-blogs"],
     queryFn: async (): Promise<Blog[]> => {
       const response = await api.get("/profile/blogs");
-      
+
       if (response.data.success && Array.isArray(response.data.blogs)) {
         return response.data.blogs;
       } else if (Array.isArray(response.data)) {
@@ -89,7 +119,7 @@ function Profile() {
       const previousBlogs = queryClient.getQueryData<Blog[]>(["user-blogs"]);
 
       queryClient.setQueryData<Blog[]>(["user-blogs"], (old = []) =>
-        old.filter(blog => blog.id !== blogId)
+        old.filter((blog) => blog.id !== blogId),
       );
 
       return { previousBlogs };
@@ -115,24 +145,46 @@ function Profile() {
   const stats = {
     totalBlogs: blogs.length,
     totalViews: blogs.reduce((total, blog) => total + (blog.viewCount || 0), 0),
-    totalLikes: blogs.reduce((total, blog) => total + (blog.likesCount || 0), 0),
-    avgViewsPerBlog: blogs.length > 0 ? Math.round(blogs.reduce((total, blog) => total + (blog.viewCount || 0), 0) / blogs.length) : 0,
-    avgLikesPerBlog: blogs.length > 0 ? Math.round(blogs.reduce((total, blog) => total + (blog.likesCount || 0), 0) / blogs.length) : 0,
-    engagementRate: blogs.reduce((total, blog) => {
-      const views = blog.viewCount || 0;
-      const likes = blog.likesCount || 0;
-      return views > 0 ? total + (likes / views) * 100 : total;
-    }, 0) / Math.max(blogs.length, 1)
+    totalLikes: blogs.reduce(
+      (total, blog) => total + (blog.likesCount || 0),
+      0,
+    ),
+    avgViewsPerBlog:
+      blogs.length > 0
+        ? Math.round(
+            blogs.reduce((total, blog) => total + (blog.viewCount || 0), 0) /
+              blogs.length,
+          )
+        : 0,
+    avgLikesPerBlog:
+      blogs.length > 0
+        ? Math.round(
+            blogs.reduce((total, blog) => total + (blog.likesCount || 0), 0) /
+              blogs.length,
+          )
+        : 0,
+    engagementRate:
+      blogs.reduce((total, blog) => {
+        const views = blog.viewCount || 0;
+        const likes = blog.likesCount || 0;
+        return views > 0 ? total + (likes / views) * 100 : total;
+      }, 0) / Math.max(blogs.length, 1),
   };
 
   // Find most popular blogs
-  const mostPopularBlog = blogs.length > 0 ? blogs.reduce((prev, current) => 
-    (prev.viewCount || 0) > (current.viewCount || 0) ? prev : current
-  ) : null;
+  const mostPopularBlog =
+    blogs.length > 0
+      ? blogs.reduce((prev, current) =>
+          (prev.viewCount || 0) > (current.viewCount || 0) ? prev : current,
+        )
+      : null;
 
-  const mostLikedBlog = blogs.length > 0 ? blogs.reduce((prev, current) => 
-    (prev.likesCount || 0) > (current.likesCount || 0) ? prev : current
-  ) : null;
+  const mostLikedBlog =
+    blogs.length > 0
+      ? blogs.reduce((prev, current) =>
+          (prev.likesCount || 0) > (current.likesCount || 0) ? prev : current,
+        )
+      : null;
 
   // Edit Blog Function
   const handleEditBlog = (blog: Blog) => {
@@ -140,12 +192,12 @@ function Profile() {
       toast.error("Cannot edit blog: Missing blog ID");
       return;
     }
-    navigate('/create-blog', { 
-      state: { 
+    navigate("/create-blog", {
+      state: {
         isEditing: true,
         blogId: blog.id,
-        blogData: blog
-      }
+        blogData: blog,
+      },
     });
   };
 
@@ -172,27 +224,27 @@ function Profile() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return (num / 1000000).toFixed(1) + "M";
     }
     if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
+      return (num / 1000).toFixed(1) + "k";
     }
     return num.toString();
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -202,7 +254,9 @@ function Profile() {
         <Card className="w-full max-w-md text-center">
           <CardHeader>
             <CardTitle className="text-red-600">Access Denied</CardTitle>
-            <CardDescription>Please log in to view your profile</CardDescription>
+            <CardDescription>
+              Please log in to view your profile
+            </CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -221,14 +275,20 @@ function Profile() {
             disabled={blogsLoading}
             className="absolute right-0 top-0"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${blogsLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${blogsLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Welcome back, <span className="text-green-600">{capitalize(user.firstName)}!</span>
+            Welcome back,{" "}
+            <span className="text-green-600">
+              {capitalize(user.firstName)}!
+            </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Track your blog performance with real-time analytics on views and likes.
+            Track your blog performance with real-time analytics on views and
+            likes.
           </p>
           <div className="text-sm text-gray-500 mt-2">
             Last updated: {formatTime(lastUpdated)}
@@ -254,7 +314,9 @@ function Profile() {
               <Eye className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(stats.totalViews)}</div>
+              <div className="text-2xl font-bold">
+                {formatNumber(stats.totalViews)}
+              </div>
               <p className="text-xs text-blue-100">All-time readers</p>
             </CardContent>
           </Card>
@@ -265,7 +327,9 @@ function Profile() {
               <Heart className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(stats.totalLikes)}</div>
+              <div className="text-2xl font-bold">
+                {formatNumber(stats.totalLikes)}
+              </div>
               <p className="text-xs text-purple-100">Reader appreciation</p>
             </CardContent>
           </Card>
@@ -276,7 +340,9 @@ function Profile() {
               <BarChart3 className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.engagementRate.toFixed(1)}%</div>
+              <div className="text-2xl font-bold">
+                {stats.engagementRate.toFixed(1)}%
+              </div>
               <p className="text-xs text-orange-100">Likes per view ratio</p>
             </CardContent>
           </Card>
@@ -294,14 +360,20 @@ function Profile() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="space-y-2">
-                <div className="text-sm font-medium text-gray-500">Full Name</div>
+                <div className="text-sm font-medium text-gray-500">
+                  Full Name
+                </div>
                 <div className="text-lg font-semibold text-gray-900">
                   {capitalize(user.firstName)} {capitalize(user.lastName)}
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="text-sm font-medium text-gray-500">Username</div>
-                <div className="text-lg font-semibold text-gray-900">@{user.userName}</div>
+                <div className="text-sm font-medium text-gray-500">
+                  Username
+                </div>
+                <div className="text-lg font-semibold text-gray-900">
+                  @{user.userName}
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="text-sm font-medium text-gray-500">Email</div>
@@ -312,7 +384,10 @@ function Profile() {
               </div>
               <div className="space-y-2">
                 <div className="text-sm font-medium text-gray-500">Role</div>
-                <Badge variant={user.role === "admin" ? "default" : "secondary"} className="text-sm">
+                <Badge
+                  variant={user.role === "admin" ? "default" : "secondary"}
+                  className="text-sm"
+                >
                   {capitalize(user.role)}
                 </Badge>
               </div>
@@ -339,10 +414,10 @@ function Profile() {
                   New Blog
                 </a>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800"
-                onClick={() => navigate('/profile/trash')}
+                onClick={() => navigate("/profile/trash")}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Trash
@@ -357,17 +432,24 @@ function Profile() {
             ) : blogsError ? (
               <div className="text-center py-12">
                 <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to load blogs</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Failed to load blogs
+                </h3>
                 <p className="text-gray-600 mb-4">
-                  {(blogsErrorData as any)?.response?.data?.message || "Failed to load blogs"}
+                  {(blogsErrorData as any)?.response?.data?.message ||
+                    "Failed to load blogs"}
                 </p>
                 <Button onClick={() => refetchBlogs()}>Try Again</Button>
               </div>
             ) : blogs.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-gray-400 text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No blogs yet</h3>
-                <p className="text-gray-600 mb-6">Start your writing journey by creating your first blog post.</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No blogs yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Start your writing journey by creating your first blog post.
+                </p>
                 <Button asChild className="bg-green-600 hover:bg-green-700">
                   <a href="/create-blog" className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
@@ -378,11 +460,14 @@ function Profile() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {blogs.map((blog, index) => (
-                  <Card key={blog.id || `blog-${index}`} className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50">
+                  <Card
+                    key={blog.id || `blog-${index}`}
+                    className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50"
+                  >
                     {blog.featuredImageUrl && (
                       <div className="h-48 overflow-hidden rounded-t-lg">
-                        <img 
-                          src={blog.featuredImageUrl} 
+                        <img
+                          src={blog.featuredImageUrl}
                           alt={blog.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
@@ -391,12 +476,15 @@ function Profile() {
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
                         {blog.category && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-green-800"
+                          >
                             {blog.category.name}
                           </Badge>
                         )}
                       </div>
-                      <CardTitle 
+                      <CardTitle
                         className="text-lg line-clamp-2 group-hover:text-green-700 transition-colors cursor-pointer"
                         onClick={() => handleViewBlog(blog)}
                       >
@@ -411,7 +499,7 @@ function Profile() {
                         <Calendar className="h-4 w-4" />
                         <span>Published {formatDate(blog.createdAt)}</span>
                       </div>
-                      
+
                       {/* Blog Analytics - Real-time counts */}
                       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -425,9 +513,9 @@ function Profile() {
                       </div>
                     </CardContent>
                     <CardFooter className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1"
                         onClick={() => handleEditBlog(blog)}
                         disabled={!blog.id}
@@ -435,14 +523,15 @@ function Profile() {
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                         onClick={() => openDeleteDialog(blog)}
                         disabled={!blog.id || deleteMutation.isPending}
                       >
-                        {deleteMutation.isPending && deletingBlog?.id === blog.id ? (
+                        {deleteMutation.isPending &&
+                        deletingBlog?.id === blog.id ? (
                           <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                         ) : (
                           <Trash2 className="h-3 w-3 mr-1" />
@@ -463,12 +552,14 @@ function Profile() {
             <AlertDialogHeader>
               <AlertDialogTitle>Move to Trash</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to move "{deletingBlog?.title}" to trash? 
+                Are you sure you want to move "{deletingBlog?.title}" to trash?
                 This action can be undone from the trash section.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={deleteMutation.isPending}>
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}

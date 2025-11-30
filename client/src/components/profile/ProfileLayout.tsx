@@ -22,7 +22,7 @@ export default function ProfileLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Pass the modal functions to ProfileHeader */}
-        <ProfileHeader 
+        <ProfileHeader
           onEditProfile={() => setIsEditModalOpen(true)}
           onChangePassword={() => setIsPasswordModalOpen(true)}
         />

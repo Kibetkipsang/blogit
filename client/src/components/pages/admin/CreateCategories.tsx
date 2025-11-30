@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-
 const createCategory = async (name: string) => {
   const res = await api.post("/categories/create", { name });
   return res.data;
@@ -24,11 +23,13 @@ function CreateCategories() {
     mutationKey: ["createCategory"],
     mutationFn: () => createCategory(name),
     onSuccess: () => {
-      setName(""); 
+      setName("");
       toast.success("Category created successfully");
     },
     onError: (error: any) => {
-      console.error(error?.response?.data?.message || "Error creating category");
+      console.error(
+        error?.response?.data?.message || "Error creating category",
+      );
     },
   });
 
@@ -40,11 +41,15 @@ function CreateCategories() {
 
   return (
     <div className="p-8">
-  
       <div className="flex justify-between border-b border-b-gray-100 pb-4 mb-6">
-        <h2 className="text-2xl font-bold mb-4">Create and Manage Categories</h2>
+        <h2 className="text-2xl font-bold mb-4">
+          Create and Manage Categories
+        </h2>
         <nav>
-          <Link to="/admin/adminCategories" className="text-blue-600 hover:underline">
+          <Link
+            to="/admin/adminCategories"
+            className="text-blue-600 hover:underline"
+          >
             Manage Categories
           </Link>
         </nav>
@@ -62,7 +67,11 @@ function CreateCategories() {
             disabled={isPending}
           />
         </div>
-        <Button type="submit" disabled={isPending} className="bg-green-700 hover:bg-green-800">
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="bg-green-700 hover:bg-green-800"
+        >
           {isPending ? "Creating..." : "Create Category"}
         </Button>
       </form>

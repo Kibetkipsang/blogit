@@ -41,10 +41,8 @@ export default function BlogCard({
       </div>
 
       <div className="p-5 pt-5 space-y-3">
-        <h2 className="text-lg font-bold text-gray-900">
-          {title}
-        </h2>
-        
+        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+
         {/* Fixed category display - now using category directly as string */}
         {category && (
           <div className="flex items-center gap-2">
@@ -53,11 +51,9 @@ export default function BlogCard({
             </span>
           </div>
         )}
-        
-        <p className="text-gray-600 text-sm line-clamp-3">
-          {synopsis}
-        </p>
-        
+
+        <p className="text-gray-600 text-sm line-clamp-3">{synopsis}</p>
+
         <div className="flex justify-between items-center text-xs text-gray-500 pt-2">
           <div>
             <p className="text-gray-700 font-medium">{authorName}</p>

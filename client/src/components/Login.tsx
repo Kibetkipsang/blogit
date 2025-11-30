@@ -32,7 +32,7 @@ const TokenStatus = () => {
 
   useEffect(() => {
     const checkToken = () => {
-      const storedToken = localStorage.getItem('authToken');
+      const storedToken = localStorage.getItem("authToken");
       setToken(storedToken);
     };
 
@@ -45,12 +45,12 @@ const TokenStatus = () => {
     <div className="fixed top-4 right-4 bg-black text-white p-3 rounded-lg text-xs max-w-xs">
       <div className="font-bold mb-1">Token Status:</div>
       <div className={token ? "text-green-400" : "text-red-400"}>
-        {token ? `✅ Present (${token.substring(0, 10)}...)` : "❌ Missing"}
+        {token ? ` Present (${token.substring(0, 10)}...)` : " Missing"}
       </div>
       {token && (
-        <button 
+        <button
           onClick={() => {
-            localStorage.removeItem('authToken');
+            localStorage.removeItem("authToken");
             setToken(null);
           }}
           className="mt-2 px-2 py-1 bg-red-600 text-white rounded text-xs"
@@ -67,27 +67,30 @@ function Login() {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  
+
   const { isPending, mutate } = useMutation({
     mutationKey: ["LoginUser"],
     mutationFn: loginUser,
     onSuccess: (data) => {
-      console.log('Login response data:', data);
-      
+      console.log("Login response data:", data);
+
       // ✅ FIX: Store the token and user data
       if (data.user && data.token) {
         setUser(data.user);
-        
+
         // 🔥 CRITICAL: Store the token in localStorage
-        localStorage.setItem('authToken', data.token);
-        console.log('✅ Token stored in localStorage:', data.token.substring(0, 20) + '...');
-        
+        localStorage.setItem("authToken", data.token);
+        console.log(
+          "✅ Token stored in localStorage:",
+          data.token.substring(0, 20) + "...",
+        );
+
         toast.success("Login Successful!");
         navigate("/");
       } else if (data.user) {
         // Fallback if token is missing (shouldn't happen with updated backend)
         setUser(data.user);
-        console.warn('⚠️ Token missing from login response');
+        console.warn("⚠️ Token missing from login response");
         toast.success("Login Successful!");
         navigate("/");
       } else {
@@ -95,14 +98,14 @@ function Login() {
       }
     },
     onError: (error: any) => {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       toast.error(error?.response?.data?.message || "Login Failed!");
     },
   });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log('Logging in with:', { identifier }); 
+    console.log("Logging in with:", { identifier });
     mutate({ identifier, password });
   }
 
@@ -117,15 +120,15 @@ function Login() {
 
   // Clear all auth data
   const clearAuthData = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
     useAuthStore.getState().clearUser();
-    toast.info('Auth data cleared');
+    toast.info("Auth data cleared");
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <TokenStatus />
+      {/* <TokenStatus /> */}
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-green-800 font-bold">Login</CardTitle>
@@ -188,9 +191,6 @@ function Login() {
             onClick={handleSubmit}
           >
             {isPending ? "Logging in..." : "Login"}
-          </Button>
-          <Button variant="outline" className="w-full" type="button">
-            Login with Google
           </Button>
         </CardFooter>
       </Card>

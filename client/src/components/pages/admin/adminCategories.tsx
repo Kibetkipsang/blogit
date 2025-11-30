@@ -23,7 +23,6 @@ function AdminCategories() {
     if (data) setCategories(Array.isArray(data) ? data : data.categories || []);
   }, [data]);
 
-
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/categories/${id}`),
     onSuccess: () => {
@@ -44,7 +43,10 @@ function AdminCategories() {
     <div className="p-8">
       <div className="flex justify-between border-b border-b-gray-100 pb-4 mb-6">
         <h2 className="text-2xl font-bold mb-6">All Categories</h2>
-        <Link to="/admin/createCategories" className="text-blue-600 hover:underline">
+        <Link
+          to="/admin/createCategories"
+          className="text-blue-600 hover:underline"
+        >
           Create Category
         </Link>
       </div>
@@ -78,7 +80,7 @@ function AdminCategories() {
                   <td className="border p-2">
                     <button
                       className="text-blue-600 hover:underline"
-                      onClick={() => setEditingCategory(category)} 
+                      onClick={() => setEditingCategory(category)}
                     >
                       Edit
                     </button>
@@ -98,7 +100,6 @@ function AdminCategories() {
         </table>
       </div>
 
-   
       {editingCategory && (
         <EditCategoryModal
           category={editingCategory}
